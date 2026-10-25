@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.DS_Store
+logs/
+report/*.aux
+report/*.log
+report/*.out
+report/*.blg
+report/*.fls
+report/*.fdb_latexmk
+report/acl_lualatex.tex

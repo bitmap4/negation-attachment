@@ -1,0 +1,38 @@
+{
+ "hi": [
+  {
+   "msg": "केवल A या B लिखिए।\n\nदीपक को पनीर पसंद नहीं है, लेकिन माया को पनीर पसंद है।\nकिसे पनीर पसंद है?\nA: दीपक\nB: माया",
+   "ans": "B"
+  },
+  {
+   "msg": "केवल A या B लिखिए।\n\nसुनील के पास पियानो है, लेकिन किरण के पास पियानो नहीं है।\nकिसके पास पियानो नहीं है?\nA: किरण\nB: सुनील",
+   "ans": "A"
+  },
+  {
+   "msg": "केवल A या B लिखिए।\n\nआलोक को शहद पसंद नहीं है, लेकिन ज्योति को शहद पसंद है।\nकिसे शहद पसंद नहीं है?\nA: आलोक\nB: ज्योति",
+   "ans": "A"
+  },
+  {
+   "msg": "केवल A या B लिखिए।\n\nनवीन के पास तंबू है, लेकिन श्रेया के पास तंबू नहीं है।\nकिसके पास तंबू है?\nA: श्रेया\nB: नवीन",
+   "ans": "B"
+  }
+ ],
+ "fr": [
+  {
+   "msg": "Répondez seulement par A ou B.\n\nDeepak n'aime pas le fromage, mais Maya aime le fromage.\nQui aime le fromage ?\nA : Deepak\nB : Maya",
+   "ans": "B"
+  },
+  {
+   "msg": "Répondez seulement par A ou B.\n\nSunil a un piano, mais Kiran n'a pas de piano.\nQui n'a pas de piano ?\nA : Kiran\nB : Sunil",
+   "ans": "A"
+  },
+  {
+   "msg": "Répondez seulement par A ou B.\n\nAlok n'aime pas le miel, mais Jyoti aime le miel.\nQui n'aime pas le miel ?\nA : Alok\nB : Jyoti",
+   "ans": "A"
+  },
+  {
+   "msg": "Répondez seulement par A ou B.\n\nNaveen a une tente, mais Shreya n'a pas de tente.\nQui a une tente ?\nA : Shreya\nB : Naveen",
+   "ans": "B"
+  }
+ ]
+}
