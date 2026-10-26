@@ -9,10 +9,19 @@ to the correct person in Hindi and French, and we start with the behaviour: does
 ## Requirements
 
 Python 3.12, `torch`, `transformers` (4.53 or later), `peft` and `numpy`.
+`jobs/setup_env.sh` builds the environment that we used.
 
 ```bash
 python data/gen.py data             # write the base data sets again (they are in data/)
+python -m neg.e1_behaviour results/e1.json hi_dev fr_dev
 ```
+
+## Settings (environment variables)
+
+| Variable | Default | Use |
+| --- | --- | --- |
+| `NEG_MODEL` | `Qwen/Qwen3-1.7B` | Model name. |
+| `NEG_SHOTS` | `0` | Number of fixed examples before the item (0 to 4). |
 
 ## Layout
 
@@ -20,8 +29,10 @@ python data/gen.py data             # write the base data sets again (they are i
 | --- | --- |
 | `data/gen.py` | Base task: two persons, one negation that moves, A/B answer. |
 | `data/shots.py` | Four fixed examples for each language (used only with `NEG_SHOTS`). |
+| `neg/common.py` | Prompt format, role label for each token, model, hooks. |
+| `neg/e1_behaviour.py` | E1: accuracy and logit difference for each condition. |
 
 ## Data sets
 
 `data/<lang>_<split>.jsonl.gz` is the base task (splits `disc`, `dev`, `test`).
-Each item has `roles`: the role of each character span.
+Each item has `roles`: the role of each character span. `common.token_roles` gives one role to each token.
