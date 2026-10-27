@@ -1,0 +1,5 @@
+e1_s4 NEG_SHOTS=4 neg.e1_behaviour results/e1_s4.json hi_dev fr_dev --n 150
+e1_s2 NEG_SHOTS=2 neg.e1_behaviour results/e1_s2.json hi_dev --n 150
+e1_4b NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e1_behaviour results/e1_4b.json hi_dev fr_dev --n 150 --bs 16
+e1_4b_s4 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half NEG_SHOTS=4 neg.e1_behaviour results/e1_4b_s4.json hi_dev --n 150 --bs 8
+e2_resid_neg_fr neg.e2_patch results/e2/resid_neg_fr.npz --lang fr --mode neg --kind resid --n 64
