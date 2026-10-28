@@ -1,0 +1,1 @@
+check_half ALLGPUS=1 NEG_MODEL=Qwen/Qwen3-4B neg.check_half hi_dev fr_dev
