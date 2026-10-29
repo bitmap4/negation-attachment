@@ -1,0 +1,137 @@
+# Templates to validate
+
+One example for each template. A fluent reader must check the grammar and the answer.
+
+- `hi` `hab` neg=0 q=0, answer **B**: वरुण शतरंज नहीं खेलता, लेकिन निखिल शतरंज खेलता है। / कौन शतरंज खेलता है? / A: वरुण / B: निखिल
+- `hi` `hab` neg=1 q=0, answer **A**: वरुण शतरंज खेलता है, लेकिन निखिल शतरंज नहीं खेलता। / कौन शतरंज खेलता है? / A: वरुण / B: निखिल
+- `hi` `hab` neg=0 q=1, answer **A**: प्रिया मिठाई नहीं खाती, लेकिन निखिल मिठाई खाता है। / कौन मिठाई नहीं खाता? / A: प्रिया / B: निखिल
+- `hi` `hab` neg=1 q=1, answer **B**: प्रिया मिठाई खाती है, लेकिन निखिल मिठाई नहीं खाता। / कौन मिठाई नहीं खाता? / A: प्रिया / B: निखिल
+- `fr` `hab` neg=0 q=0, answer **B**: Varun ne joue pas aux échecs, mais Nikhil joue aux échecs. / Qui joue aux échecs ? / A : Varun / B : Nikhil
+- `fr` `hab` neg=1 q=0, answer **A**: Varun joue aux échecs, mais Nikhil ne joue pas aux échecs. / Qui joue aux échecs ? / A : Varun / B : Nikhil
+- `fr` `hab` neg=0 q=1, answer **A**: Priya ne mange pas de sucreries, mais Nikhil mange des sucreries. / Qui ne mange pas de sucreries ? / A : Priya / B : Nikhil
+- `fr` `hab` neg=1 q=1, answer **B**: Priya mange des sucreries, mais Nikhil ne mange pas de sucreries. / Qui ne mange pas de sucreries ? / A : Priya / B : Nikhil
+
+- `hi` `never` neg=0 q=0, answer **B**: वरुण कभी शतरंज नहीं खेलता, लेकिन करण शतरंज खेलता है। / कौन शतरंज खेलता है? / A: वरुण / B: करण
+- `hi` `never` neg=1 q=0, answer **A**: वरुण शतरंज खेलता है, लेकिन करण कभी शतरंज नहीं खेलता। / कौन शतरंज खेलता है? / A: वरुण / B: करण
+- `hi` `never` neg=0 q=1, answer **A**: निखिल कभी मिठाई नहीं खाता, लेकिन समीर मिठाई खाता है। / कौन कभी मिठाई नहीं खाता? / A: निखिल / B: समीर
+- `hi` `never` neg=1 q=1, answer **B**: निखिल मिठाई खाता है, लेकिन समीर कभी मिठाई नहीं खाता। / कौन कभी मिठाई नहीं खाता? / A: निखिल / B: समीर
+- `fr` `never` neg=0 q=0, answer **B**: Varun ne joue jamais aux échecs, mais Karan joue aux échecs. / Qui joue aux échecs ? / A : Varun / B : Karan
+- `fr` `never` neg=1 q=0, answer **A**: Varun joue aux échecs, mais Karan ne joue jamais aux échecs. / Qui joue aux échecs ? / A : Varun / B : Karan
+- `fr` `never` neg=0 q=1, answer **A**: Nikhil ne mange jamais de sucreries, mais Sameer mange des sucreries. / Qui ne mange jamais de sucreries ? / A : Nikhil / B : Sameer
+- `fr` `never` neg=1 q=1, answer **B**: Nikhil mange des sucreries, mais Sameer ne mange jamais de sucreries. / Qui ne mange jamais de sucreries ? / A : Nikhil / B : Sameer
+
+- `hi` `nolonger` neg=0 q=0, answer **B**: पहले सुरेश और मनोज दोनों शतरंज खेलते थे। अब सुरेश शतरंज नहीं खेलता, लेकिन मनोज शतरंज खेलता है। / अब कौन शतरंज खेलता है? / A: सुरेश / B: मनोज
+- `hi` `nolonger` neg=1 q=0, answer **A**: पहले सुरेश और मनोज दोनों शतरंज खेलते थे। अब सुरेश शतरंज खेलता है, लेकिन मनोज शतरंज नहीं खेलता। / अब कौन शतरंज खेलता है? / A: सुरेश / B: मनोज
+- `hi` `nolonger` neg=0 q=1, answer **A**: पहले इमरान और मनोज दोनों शतरंज खेलते थे। अब इमरान शतरंज नहीं खेलता, लेकिन मनोज शतरंज खेलता है। / अब कौन शतरंज नहीं खेलता? / A: इमरान / B: मनोज
+- `hi` `nolonger` neg=1 q=1, answer **B**: पहले इमरान और मनोज दोनों शतरंज खेलते थे। अब इमरान शतरंज खेलता है, लेकिन मनोज शतरंज नहीं खेलता। / अब कौन शतरंज नहीं खेलता? / A: इमरान / B: मनोज
+- `fr` `nolonger` neg=0 q=0, answer **B**: Avant, Suresh et Manoj jouaient aux échecs. Maintenant, Suresh ne joue plus aux échecs, mais Manoj joue aux échecs. / Qui joue aux échecs maintenant ? / A : Suresh / B : Manoj
+- `fr` `nolonger` neg=1 q=0, answer **A**: Avant, Suresh et Manoj jouaient aux échecs. Maintenant, Suresh joue aux échecs, mais Manoj ne joue plus aux échecs. / Qui joue aux échecs maintenant ? / A : Suresh / B : Manoj
+- `fr` `nolonger` neg=0 q=1, answer **A**: Avant, Imran et Manoj jouaient aux échecs. Maintenant, Imran ne joue plus aux échecs, mais Manoj joue aux échecs. / Qui ne joue plus aux échecs ? / A : Imran / B : Manoj
+- `fr` `nolonger` neg=1 q=1, answer **B**: Avant, Imran et Manoj jouaient aux échecs. Maintenant, Imran joue aux échecs, mais Manoj ne joue plus aux échecs. / Qui ne joue plus aux échecs ? / A : Imran / B : Manoj
+
+- `hi` `nothing` neg=0 q=0, answer **B**: सुरेश कुछ नहीं खाता, लेकिन प्रिया चावल खाती है। / कौन चावल खाता है? / A: सुरेश / B: प्रिया
+- `hi` `nothing` neg=1 q=0, answer **A**: सुरेश चावल खाता है, लेकिन प्रिया कुछ नहीं खाती। / कौन चावल खाता है? / A: सुरेश / B: प्रिया
+- `hi` `nothing` neg=0 q=1, answer **A**: आशा कुछ नहीं खाती, लेकिन निखिल चावल खाता है। / कौन कुछ नहीं खाता? / A: आशा / B: निखिल
+- `hi` `nothing` neg=1 q=1, answer **B**: आशा चावल खाती है, लेकिन निखिल कुछ नहीं खाता। / कौन कुछ नहीं खाता? / A: आशा / B: निखिल
+- `fr` `nothing` neg=0 q=0, answer **B**: Suresh ne mange rien, mais Priya mange du riz. / Qui mange du riz ? / A : Suresh / B : Priya
+- `fr` `nothing` neg=1 q=0, answer **A**: Suresh mange du riz, mais Priya ne mange rien. / Qui mange du riz ? / A : Suresh / B : Priya
+- `fr` `nothing` neg=0 q=1, answer **A**: Asha ne mange rien, mais Nikhil mange du riz. / Qui ne mange rien ? / A : Asha / B : Nikhil
+- `fr` `nothing` neg=1 q=1, answer **B**: Asha mange du riz, mais Nikhil ne mange rien. / Qui ne mange rien ? / A : Asha / B : Nikhil
+
+- `hi` `lex-lex-pos` neg=0 q=0, answer **B**: इमरान नाखुश है, लेकिन फ़रहान खुश है। / कौन खुश है? / A: इमरान / B: फ़रहान
+- `hi` `lex-lex-pos` neg=1 q=0, answer **A**: इमरान खुश है, लेकिन फ़रहान नाखुश है। / कौन खुश है? / A: इमरान / B: फ़रहान
+- `hi` `lex-exp-pos` neg=0 q=0, answer **B**: मनोज सक्षम नहीं है, लेकिन करण सक्षम है। / कौन सक्षम है? / A: मनोज / B: करण
+- `hi` `lex-exp-pos` neg=1 q=0, answer **A**: मनोज सक्षम है, लेकिन करण सक्षम नहीं है। / कौन सक्षम है? / A: मनोज / B: करण
+- `hi` `lex-lex-lex` neg=0 q=1, answer **A**: आशा बेईमान है, लेकिन करण ईमानदार है। / कौन बेईमान है? / A: आशा / B: करण
+- `hi` `lex-lex-lex` neg=1 q=1, answer **B**: आशा ईमानदार है, लेकिन करण बेईमान है। / कौन बेईमान है? / A: आशा / B: करण
+- `hi` `lex-lex-exp` neg=0 q=1, answer **A**: आशा नाखुश है, लेकिन इमरान खुश है। / कौन खुश नहीं है? / A: आशा / B: इमरान
+- `hi` `lex-lex-exp` neg=1 q=1, answer **B**: आशा खुश है, लेकिन इमरान नाखुश है। / कौन खुश नहीं है? / A: आशा / B: इमरान
+- `hi` `lex-exp-lex` neg=0 q=1, answer **A**: करण सक्षम नहीं है, लेकिन आशा सक्षम है। / कौन अक्षम है? / A: करण / B: आशा
+- `hi` `lex-exp-lex` neg=1 q=1, answer **B**: करण सक्षम है, लेकिन आशा सक्षम नहीं है। / कौन अक्षम है? / A: करण / B: आशा
+- `hi` `lex-exp-exp` neg=0 q=1, answer **A**: फ़रहान खुश नहीं है, लेकिन आशा खुश है। / कौन खुश नहीं है? / A: फ़रहान / B: आशा
+- `hi` `lex-exp-exp` neg=1 q=1, answer **B**: फ़रहान खुश है, लेकिन आशा खुश नहीं है। / कौन खुश नहीं है? / A: फ़रहान / B: आशा
+- `fr` `lex-lex-pos` neg=0 q=0, answer **B**: Imran est malheureux, mais Farhan est heureux. / Qui est heureux ? / A : Imran / B : Farhan
+- `fr` `lex-lex-pos` neg=1 q=0, answer **A**: Imran est heureux, mais Farhan est malheureux. / Qui est heureux ? / A : Imran / B : Farhan
+- `fr` `lex-exp-pos` neg=0 q=0, answer **B**: Manoj n'est pas capable, mais Karan est capable. / Qui est capable ? / A : Manoj / B : Karan
+- `fr` `lex-exp-pos` neg=1 q=0, answer **A**: Manoj est capable, mais Karan n'est pas capable. / Qui est capable ? / A : Manoj / B : Karan
+- `fr` `lex-lex-lex` neg=0 q=1, answer **A**: Asha est malhonnête, mais Karan est honnête. / Qui est malhonnête ? / A : Asha / B : Karan
+- `fr` `lex-lex-lex` neg=1 q=1, answer **B**: Asha est honnête, mais Karan est malhonnête. / Qui est malhonnête ? / A : Asha / B : Karan
+- `fr` `lex-lex-exp` neg=0 q=1, answer **A**: Asha est malheureuse, mais Imran est heureux. / Qui n'est pas heureux ? / A : Asha / B : Imran
+- `fr` `lex-lex-exp` neg=1 q=1, answer **B**: Asha est heureuse, mais Imran est malheureux. / Qui n'est pas heureux ? / A : Asha / B : Imran
+- `fr` `lex-exp-lex` neg=0 q=1, answer **A**: Karan n'est pas capable, mais Asha est capable. / Qui est incapable ? / A : Karan / B : Asha
+- `fr` `lex-exp-lex` neg=1 q=1, answer **B**: Karan est capable, mais Asha n'est pas capable. / Qui est incapable ? / A : Karan / B : Asha
+- `fr` `lex-exp-exp` neg=0 q=1, answer **A**: Farhan n'est pas heureux, mais Asha est heureuse. / Qui n'est pas heureux ? / A : Farhan / B : Asha
+- `fr` `lex-exp-exp` neg=1 q=1, answer **B**: Farhan est heureux, mais Asha n'est pas heureuse. / Qui n'est pas heureux ? / A : Farhan / B : Asha
+
+- `hi` `focus-obj` neg=0 q=0, answer **B**: करण को क्रिकेट नहीं, चावल पसंद है। / करण को क्या पसंद है? / A: क्रिकेट / B: चावल
+- `hi` `focus-obj` neg=1 q=0, answer **A**: करण को क्रिकेट पसंद है, चावल नहीं। / करण को क्या पसंद है? / A: क्रिकेट / B: चावल
+- `hi` `focus-per` neg=0 q=0, answer **B**: आइसक्रीम सुरेश को नहीं, प्रिया को पसंद है। / किसे आइसक्रीम पसंद है? / A: सुरेश / B: प्रिया
+- `hi` `focus-per` neg=1 q=0, answer **A**: आइसक्रीम सुरेश को पसंद है, प्रिया को नहीं। / किसे आइसक्रीम पसंद है? / A: सुरेश / B: प्रिया
+- `hi` `focus-obj` neg=0 q=1, answer **A**: मनोज को क्रिकेट नहीं, आइसक्रीम पसंद है। / मनोज को क्या पसंद नहीं है? / A: क्रिकेट / B: आइसक्रीम
+- `hi` `focus-obj` neg=1 q=1, answer **B**: मनोज को क्रिकेट पसंद है, आइसक्रीम नहीं। / मनोज को क्या पसंद नहीं है? / A: क्रिकेट / B: आइसक्रीम
+- `hi` `focus-per` neg=0 q=1, answer **A**: आइसक्रीम मनोज को नहीं, प्रिया को पसंद है। / किसे आइसक्रीम पसंद नहीं है? / A: मनोज / B: प्रिया
+- `hi` `focus-per` neg=1 q=1, answer **B**: आइसक्रीम मनोज को पसंद है, प्रिया को नहीं। / किसे आइसक्रीम पसंद नहीं है? / A: मनोज / B: प्रिया
+- `fr` `focus-obj` neg=0 q=0, answer **B**: Karan n'aime pas le cricket, mais le riz. / Qu'est-ce que Karan aime ? / A : le cricket / B : le riz
+- `fr` `focus-obj` neg=1 q=0, answer **A**: Karan aime le cricket, pas le riz. / Qu'est-ce que Karan aime ? / A : le cricket / B : le riz
+- `fr` `focus-per` neg=0 q=0, answer **B**: Ce n'est pas Suresh, mais Priya, qui aime la glace. / Qui aime la glace ? / A : Suresh / B : Priya
+- `fr` `focus-per` neg=1 q=0, answer **A**: C'est Suresh, et non Priya, qui aime la glace. / Qui aime la glace ? / A : Suresh / B : Priya
+- `fr` `focus-obj` neg=0 q=1, answer **A**: Manoj n'aime pas le cricket, mais la glace. / Qu'est-ce que Manoj n'aime pas ? / A : le cricket / B : la glace
+- `fr` `focus-obj` neg=1 q=1, answer **B**: Manoj aime le cricket, pas la glace. / Qu'est-ce que Manoj n'aime pas ? / A : le cricket / B : la glace
+- `fr` `focus-per` neg=0 q=1, answer **A**: Ce n'est pas Manoj, mais Priya, qui aime la glace. / Qui n'aime pas la glace ? / A : Manoj / B : Priya
+- `fr` `focus-per` neg=1 q=1, answer **B**: C'est Manoj, et non Priya, qui aime la glace. / Qui n'aime pas la glace ? / A : Manoj / B : Priya
+
+- `hi` `quant-all` neg=- q=-, answer **A**: तीन लोग हैं: सुरेश, निखिल और प्रिया। सबको फ़ुटबॉल पसंद है। / क्या सुरेश को फ़ुटबॉल पसंद है? / A: हाँ / B: नहीं
+- `hi` `quant-none` neg=- q=-, answer **B**: तीन लोग हैं: सुरेश, निखिल और प्रिया। किसी को फ़ुटबॉल पसंद नहीं है। / क्या सुरेश को फ़ुटबॉल पसंद है? / A: हाँ / B: नहीं
+- `hi` `quant-allx-exc` neg=- q=-, answer **B**: तीन लोग हैं: मनोज, वरुण और सुरेश। सुरेश को छोड़कर सबको आइसक्रीम पसंद है। / क्या सुरेश को आइसक्रीम पसंद है? / A: हाँ / B: नहीं
+- `hi` `quant-nonex-exc` neg=- q=-, answer **A**: तीन लोग हैं: मनोज, वरुण और सुरेश। सुरेश को छोड़कर किसी को आइसक्रीम पसंद नहीं है। / क्या सुरेश को आइसक्रीम पसंद है? / A: हाँ / B: नहीं
+- `hi` `quant-allx-rest` neg=- q=-, answer **A**: तीन लोग हैं: वरुण, समीर और आशा। आशा को छोड़कर सबको आइसक्रीम पसंद है। / क्या वरुण को आइसक्रीम पसंद है? / A: हाँ / B: नहीं
+- `hi` `quant-nonex-rest` neg=- q=-, answer **B**: तीन लोग हैं: वरुण, समीर और आशा। आशा को छोड़कर किसी को आइसक्रीम पसंद नहीं है। / क्या वरुण को आइसक्रीम पसंद है? / A: हाँ / B: नहीं
+- `hi` `quant-notall-exc` neg=- q=-, answer **B**: तीन लोग हैं: वरुण, करण और प्रिया। सबको क्रिकेट पसंद नहीं है। वरुण और करण को क्रिकेट पसंद है। / क्या प्रिया को क्रिकेट पसंद है? / A: हाँ / B: नहीं
+- `hi` `quant-notall-rest` neg=- q=-, answer **A**: तीन लोग हैं: वरुण, मनोज और फ़रहान। सबको आइसक्रीम पसंद नहीं है। वरुण और मनोज को आइसक्रीम पसंद है। / क्या वरुण को आइसक्रीम पसंद है? / A: हाँ / B: नहीं
+- `fr` `quant-all` neg=- q=-, answer **A**: Il y a trois personnes : Suresh, Nikhil et Priya. Tout le monde aime le football. / Est-ce que Suresh aime le football ? / A : Oui / B : Non
+- `fr` `quant-none` neg=- q=-, answer **B**: Il y a trois personnes : Suresh, Nikhil et Priya. Personne n'aime le football. / Est-ce que Suresh aime le football ? / A : Oui / B : Non
+- `fr` `quant-allx-exc` neg=- q=-, answer **B**: Il y a trois personnes : Manoj, Varun et Suresh. Tout le monde aime la glace, sauf Suresh. / Est-ce que Suresh aime la glace ? / A : Oui / B : Non
+- `fr` `quant-nonex-exc` neg=- q=-, answer **A**: Il y a trois personnes : Manoj, Varun et Suresh. Personne n'aime la glace, sauf Suresh. / Est-ce que Suresh aime la glace ? / A : Oui / B : Non
+- `fr` `quant-allx-rest` neg=- q=-, answer **A**: Il y a trois personnes : Varun, Sameer et Asha. Tout le monde aime la glace, sauf Asha. / Est-ce que Varun aime la glace ? / A : Oui / B : Non
+- `fr` `quant-nonex-rest` neg=- q=-, answer **B**: Il y a trois personnes : Varun, Sameer et Asha. Personne n'aime la glace, sauf Asha. / Est-ce que Varun aime la glace ? / A : Oui / B : Non
+- `fr` `quant-notall-exc` neg=- q=-, answer **B**: Il y a trois personnes : Varun, Karan et Priya. Tout le monde n'aime pas le cricket. Varun et Karan aiment le cricket. / Est-ce que Priya aime le cricket ? / A : Oui / B : Non
+- `fr` `quant-notall-rest` neg=- q=-, answer **A**: Il y a trois personnes : Varun, Manoj et Farhan. Tout le monde n'aime pas la glace. Varun et Manoj aiment la glace. / Est-ce que Varun aime la glace ? / A : Oui / B : Non
+
+- `hi` `w1-f1` neg=- q=-, answer **B**: फ़रहान को फ़ुटबॉल पसंद नहीं है। निखिल को फ़ुटबॉल पसंद नहीं है। / क्या फ़रहान को फ़ुटबॉल पसंद है? / A: हाँ / B: नहीं
+- `hi` `w1-f2` neg=- q=-, answer **B**: वरुण के पास स्कूटर नहीं है। करण के पास स्कूटर नहीं है। / क्या वरुण के पास स्कूटर है? / A: हाँ / B: नहीं
+- `hi` `w1-f1` neg=- q=-, answer **A**: प्रिया को आइसक्रीम पसंद है। इमरान को आइसक्रीम पसंद नहीं है। / क्या प्रिया को आइसक्रीम पसंद है? / A: हाँ / B: नहीं
+- `hi` `w1-f2` neg=- q=-, answer **A**: निखिल के पास स्कूटर है। समीर के पास स्कूटर नहीं है। / क्या निखिल के पास स्कूटर है? / A: हाँ / B: नहीं
+- `hi` `w1-f1` neg=- q=-, answer **B**: इमरान को फ़ुटबॉल पसंद नहीं है। मनोज को फ़ुटबॉल पसंद है। / क्या इमरान को फ़ुटबॉल पसंद है? / A: हाँ / B: नहीं
+- `hi` `w1-f2` neg=- q=-, answer **B**: मनोज के पास टिकट नहीं है। निखिल के पास टिकट है। / क्या मनोज के पास टिकट है? / A: हाँ / B: नहीं
+- `hi` `w1-f1` neg=- q=-, answer **A**: मनोज को चावल पसंद है। फ़रहान को चावल पसंद है। / क्या मनोज को चावल पसंद है? / A: हाँ / B: नहीं
+- `hi` `w1-f2` neg=- q=-, answer **A**: प्रिया के पास फ़ोन है। वरुण के पास फ़ोन है। / क्या प्रिया के पास फ़ोन है? / A: हाँ / B: नहीं
+- `fr` `w1-f1` neg=- q=-, answer **B**: Farhan n'aime pas le football. Nikhil n'aime pas le football. / Est-ce que Farhan aime le football ? / A : Oui / B : Non
+- `fr` `w1-f2` neg=- q=-, answer **B**: Varun n'a pas de scooter. Karan n'a pas de scooter. / Est-ce que Varun a un scooter ? / A : Oui / B : Non
+- `fr` `w1-f1` neg=- q=-, answer **A**: Priya aime la glace. Imran n'aime pas la glace. / Est-ce que Priya aime la glace ? / A : Oui / B : Non
+- `fr` `w1-f2` neg=- q=-, answer **A**: Nikhil a un scooter. Sameer n'a pas de scooter. / Est-ce que Nikhil a un scooter ? / A : Oui / B : Non
+- `fr` `w1-f1` neg=- q=-, answer **B**: Imran n'aime pas le football. Manoj aime le football. / Est-ce qu'Imran aime le football ? / A : Oui / B : Non
+- `fr` `w1-f2` neg=- q=-, answer **B**: Manoj n'a pas de billet. Nikhil a un billet. / Est-ce que Manoj a un billet ? / A : Oui / B : Non
+- `fr` `w1-f1` neg=- q=-, answer **A**: Manoj aime le riz. Farhan aime le riz. / Est-ce que Manoj aime le riz ? / A : Oui / B : Non
+- `fr` `w1-f2` neg=- q=-, answer **A**: Priya a un téléphone. Varun a un téléphone. / Est-ce que Priya a un téléphone ? / A : Oui / B : Non
+
+- `hi` `nest-f1` neg=- q=-, answer **B**: यह सच नहीं है कि फ़रहान को फ़ुटबॉल पसंद है। इमरान को फ़ुटबॉल पसंद नहीं है। / क्या फ़रहान को फ़ुटबॉल पसंद है? / A: हाँ / B: नहीं
+- `hi` `nest-f2` neg=- q=-, answer **B**: यह सच नहीं है कि प्रिया के पास पेन है। समीर के पास पेन नहीं है। / क्या प्रिया के पास पेन है? / A: हाँ / B: नहीं
+- `hi` `nest-f1` neg=- q=-, answer **A**: यह सच नहीं है कि समीर को आइसक्रीम पसंद नहीं है। सुरेश को आइसक्रीम पसंद नहीं है। / क्या समीर को आइसक्रीम पसंद है? / A: हाँ / B: नहीं
+- `hi` `nest-f2` neg=- q=-, answer **A**: यह सच नहीं है कि आशा के पास स्कूटर नहीं है। वरुण के पास स्कूटर नहीं है। / क्या आशा के पास स्कूटर है? / A: हाँ / B: नहीं
+- `hi` `nest-f1` neg=- q=-, answer **B**: यह सच नहीं है कि सुरेश को चावल पसंद है। निखिल को चावल पसंद है। / क्या सुरेश को चावल पसंद है? / A: हाँ / B: नहीं
+- `hi` `nest-f2` neg=- q=-, answer **B**: यह सच नहीं है कि फ़रहान के पास पेन है। इमरान के पास पेन है। / क्या फ़रहान के पास पेन है? / A: हाँ / B: नहीं
+- `hi` `nest-f1` neg=- q=-, answer **A**: यह सच नहीं है कि आशा को चावल पसंद नहीं है। करण को चावल पसंद है। / क्या आशा को चावल पसंद है? / A: हाँ / B: नहीं
+- `hi` `nest-f2` neg=- q=-, answer **A**: यह सच नहीं है कि फ़रहान के पास टिकट नहीं है। करण के पास टिकट है। / क्या फ़रहान के पास टिकट है? / A: हाँ / B: नहीं
+- `fr` `nest-f1` neg=- q=-, answer **B**: Il n'est pas vrai que Farhan aime le football. Imran n'aime pas le football. / Est-ce que Farhan aime le football ? / A : Oui / B : Non
+- `fr` `nest-f2` neg=- q=-, answer **B**: Il n'est pas vrai que Priya ait un stylo. Sameer n'a pas de stylo. / Est-ce que Priya a un stylo ? / A : Oui / B : Non
+- `fr` `nest-f1` neg=- q=-, answer **A**: Il n'est pas vrai que Sameer n'aime pas la glace. Suresh n'aime pas la glace. / Est-ce que Sameer aime la glace ? / A : Oui / B : Non
+- `fr` `nest-f2` neg=- q=-, answer **A**: Il n'est pas vrai qu'Asha n'ait pas de scooter. Varun n'a pas de scooter. / Est-ce qu'Asha a un scooter ? / A : Oui / B : Non
+- `fr` `nest-f1` neg=- q=-, answer **B**: Il n'est pas vrai que Suresh aime le riz. Nikhil aime le riz. / Est-ce que Suresh aime le riz ? / A : Oui / B : Non
+- `fr` `nest-f2` neg=- q=-, answer **B**: Il n'est pas vrai que Farhan ait un stylo. Imran a un stylo. / Est-ce que Farhan a un stylo ? / A : Oui / B : Non
+- `fr` `nest-f1` neg=- q=-, answer **A**: Il n'est pas vrai qu'Asha n'aime pas le riz. Karan aime le riz. / Est-ce qu'Asha aime le riz ? / A : Oui / B : Non
+- `fr` `nest-f2` neg=- q=-, answer **A**: Il n'est pas vrai que Farhan n'ait pas de billet. Karan a un billet. / Est-ce que Farhan a un billet ? / A : Oui / B : Non
+
+- `hi` `w2-f1` neg=- q=-, answer **B**: इमरान को क्रिकेट पसंद नहीं है। इमरान को फ़ुटबॉल पसंद नहीं है। निखिल को क्रिकेट पसंद नहीं है। निखिल को फ़ुटबॉल पसंद नहीं है। / क्या इमरान को क्रिकेट पसंद है? / A: हाँ / B: नहीं
+- `hi` `w2-f2` neg=- q=-, answer **B**: प्रिया के पास टिकट नहीं है। प्रिया के पास स्कूटर नहीं है। निखिल के पास टिकट नहीं है। निखिल के पास स्कूटर नहीं है। / क्या प्रिया के पास टिकट है? / A: हाँ / B: नहीं
+- `fr` `w2-f1` neg=- q=-, answer **B**: Imran n'aime pas le cricket. Imran n'aime pas le football. Nikhil n'aime pas le cricket. Nikhil n'aime pas le football. / Est-ce qu'Imran aime le cricket ? / A : Oui / B : Non
+- `fr` `w2-f2` neg=- q=-, answer **B**: Priya n'a pas de billet. Priya n'a pas de scooter. Nikhil n'a pas de billet. Nikhil n'a pas de scooter. / Est-ce que Priya a un billet ? / A : Oui / B : Non
