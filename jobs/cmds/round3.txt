@@ -1,0 +1,5 @@
+e1_s4 NEG_SHOTS=4 neg.e1_behaviour results/e1_s4.json hi_dev fr_dev --n 150 --bs 8
+e1_ext_4b NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e1_behaviour results/e1_ext_4b.json hi_hab_dev fr_hab_dev hi_never_dev fr_never_dev hi_nolonger_dev fr_nolonger_dev hi_nothing_dev fr_nothing_dev hi_lex_dev fr_lex_dev hi_focus_dev fr_focus_dev hi_quant_dev fr_quant_dev hi_w1_dev fr_w1_dev hi_nest_dev fr_nest_dev hi_w2_dev fr_w2_dev --n 100 --bs 12
+e1_s2 NEG_SHOTS=2 neg.e1_behaviour results/e1_s2.json hi_dev --n 150 --bs 12
+e1_test_4b NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e1_behaviour results/e1_test_4b.json hi_test fr_test --n 300 --bs 12
+e1_ext_s4 NEG_SHOTS=4 neg.e1_behaviour results/e1_ext_s4.json hi_hab_dev fr_hab_dev hi_never_dev fr_never_dev hi_nolonger_dev fr_nolonger_dev hi_nothing_dev fr_nothing_dev hi_lex_dev fr_lex_dev hi_focus_dev fr_focus_dev hi_quant_dev fr_quant_dev hi_w1_dev fr_w1_dev hi_nest_dev fr_nest_dev hi_w2_dev fr_w2_dev --n 100 --bs 8

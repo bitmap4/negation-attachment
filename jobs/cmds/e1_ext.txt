@@ -1,0 +1,1 @@
+e1_ext neg.e1_behaviour results/e1_ext.json hi_hab_dev fr_hab_dev hi_never_dev fr_never_dev hi_nolonger_dev fr_nolonger_dev hi_nothing_dev fr_nothing_dev hi_lex_dev fr_lex_dev hi_focus_dev fr_focus_dev hi_quant_dev fr_quant_dev hi_w1_dev fr_w1_dev hi_nest_dev fr_nest_dev hi_w2_dev fr_w2_dev --keys lang,fam,q,neg,ord

@@ -13,6 +13,7 @@ ap.add_argument("out")
 ap.add_argument("sets", nargs="+")
 ap.add_argument("--n", type=int, default=0, help="use only the first N pairs of each family")
 ap.add_argument("--bs", type=int, default=48)
+ap.add_argument("--keys", default="lang,fam,q,neg,ord", help="condition fields for the summary")
 a = ap.parse_args()
 
 tok = C.get_tok()
@@ -50,6 +51,9 @@ for name in a.sets:
             rows.append(r)
     print(f"{name}: {len(items)} items, {time.time() - t0:.0f} s, acc {sum(r['ok'] for r in rows[-len(items):]) / len(items):.3f}", flush=True)
 
+keys = a.keys.split(",")
+
+
 def summ(rs):
     pairs = defaultdict(list)
     for r in rs:
@@ -69,8 +73,7 @@ def table(fields):
     return [dict(zip(fields, k), **summ(v)) for k, v in sorted(g.items(), key=lambda x: str(x[0]))]
 
 
-res = {"model": C.MODEL, "shots": C.SHOTS, "by_set_fam": table(["set", "fam"]),
-       "by_cond": table(["set", "lang", "fam", "q", "neg", "ord"])}
+res = {"model": C.MODEL, "shots": C.SHOTS, "by_set_fam": table(["set", "fam"]), "by_cond": table(["set"] + keys)}
 os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
 json.dump(res, open(a.out, "w"), indent=1)
 json.dump(rows, open(a.out.replace(".json", "_items.json"), "w"))
