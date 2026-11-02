@@ -1,0 +1,2 @@
+e2_resid_neg_fr neg.e2_patch results/e2/resid_neg_fr.npz --lang fr --mode neg --kind resid --n 64
+e2_resid_neg_hi neg.e2_patch results/e2/resid_neg_hi.npz --lang hi --mode neg --kind resid --n 64
