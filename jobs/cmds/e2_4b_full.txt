@@ -1,0 +1,16 @@
+e2_resid_neg_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_neg_hi.npz --lang hi --mode neg --kind resid --n 96 --bs 48
+e2_resid_neg_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_neg_fr.npz --lang fr --mode neg --kind resid --n 96 --bs 48
+e2_head_neg_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/head_neg_hi.npz --lang hi --mode neg --kind head --n 32 --bs 48
+e2_head_neg_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/head_neg_fr.npz --lang fr --mode neg --kind head --n 32 --bs 48
+e2_resid_other_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_other_hi.npz --lang hi --mode other --kind resid --n 96 --bs 48
+e2_resid_other_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_other_fr.npz --lang fr --mode other --kind resid --n 96 --bs 48
+e2_attn_neg_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/attn_neg_hi.npz --lang hi --mode neg --kind attn --n 96 --bs 48
+e2_mlp_neg_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/mlp_neg_hi.npz --lang hi --mode neg --kind mlp --n 96 --bs 48
+e2_resid_ord_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_ord_hi.npz --lang hi --mode ord --kind resid --n 96 --bs 48
+e2_resid_ord_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_ord_fr.npz --lang fr --mode ord --kind resid --n 96 --bs 48
+e2_attn_neg_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/attn_neg_fr.npz --lang fr --mode neg --kind attn --n 96 --bs 48
+e2_mlp_neg_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/mlp_neg_fr.npz --lang fr --mode neg --kind mlp --n 96 --bs 48
+e2_resid_q_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_q_hi.npz --lang hi --mode q --kind resid --n 96 --bs 48
+e2_resid_q_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_q_fr.npz --lang fr --mode q --kind resid --n 96 --bs 48
+e2_resid_name_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_name_hi.npz --lang hi --mode name --kind resid --n 96 --bs 48
+e2_resid_name_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_name_fr.npz --lang fr --mode name --kind resid --n 96 --bs 48

@@ -1,0 +1,2 @@
+e2_4b_resid_neg_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_neg_hi.npz --lang hi --mode neg --kind resid --n 64 --bs 48
+e2_4b_resid_neg_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/resid_neg_fr.npz --lang fr --mode neg --kind resid --n 64 --bs 48
