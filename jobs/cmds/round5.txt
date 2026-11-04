@@ -1,0 +1,23 @@
+e3_smoke NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e3_das results/e3/smoke.json --train fr_disc --eval fr_test hi_test --grid oA:18;end:28 --vars W,Z,ANS --k 8 --steps 100 --scale 64 --neval 200
+e2_attnin_neg_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/attnin_neg_hi.npz --lang hi --mode neg --kind attn_in --n 64 --bs 48
+e2_attnin_neg_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_patch results/e2_4b/attnin_neg_fr.npz --lang fr --mode neg --kind attn_in --n 64 --bs 48
+e2w_w2_target_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/w2_target_hi.npz --lang hi --set w2 --mode target --n 64
+e4_readout NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e4_oracle results/e4/readout.json --sets fr_test hi_test --n 300 --bs 24
+e2_heads_opt_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_heads results/e2_4b/heads_opt_hi.json --lang hi --layers 16-19 --dest opt
+e2_heads_opt_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_heads results/e2_4b/heads_opt_fr.json --lang fr --layers 16-19 --dest opt
+e2w_w2_target_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/w2_target_fr.npz --lang fr --set w2 --mode target --n 64
+e2_attnpat_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_attn results/e2_4b/attnpat_fr.npz --lang fr
+e2_heads_lbt_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_heads results/e2_4b/heads_lbt_hi.json --lang hi --layers 19-24 --dest lbt
+e2_heads_lbt_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_heads results/e2_4b/heads_lbt_fr.json --lang fr --layers 19-24 --dest lbt
+e2w_w1_target_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/w1_target_hi.npz --lang hi --set w1 --mode target --n 64
+e2_attnpat_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_attn results/e2_4b/attnpat_hi.npz --lang hi
+e2_heads_end_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_heads results/e2_4b/heads_end_hi.json --lang hi --layers 23-26 --dest end
+e2_heads_end_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2_heads results/e2_4b/heads_end_fr.json --lang fr --layers 23-26 --dest end
+e2w_w1_target_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/w1_target_fr.npz --lang fr --set w1 --mode target --n 64
+e1_base_4b NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e1_behaviour results/e1_base_4b.json hi_dev fr_dev hi_test fr_test --bs 16
+e2w_w2_sib_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/w2_sib_hi.npz --lang hi --set w2 --mode sib --n 64 --stride 2
+e2w_w2_cross_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/w2_cross_hi.npz --lang hi --set w2 --mode cross --n 64 --stride 2
+e2w_nest_target_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/nest_target_fr.npz --lang fr --set nest --mode target --n 64
+e2w_nest_target_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/nest_target_hi.npz --lang hi --set nest --mode target --n 64
+e2w_w2_sib_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/w2_sib_fr.npz --lang fr --set w2 --mode sib --n 64 --stride 2
+e2w_w2_cross_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e2w_patch results/e2w/w2_cross_fr.npz --lang fr --set w2 --mode cross --n 64 --stride 2
