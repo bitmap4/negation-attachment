@@ -5,7 +5,8 @@ The donor D gives activations; the recipient R receives them. P is the minimal p
 toward the letter that is correct for P (the opposite of the correct letter for R), and
     recovery = (s_patched - s_R) / (s_P - s_R).
 Modes: neg, other, ord, q, name (see pairs.py).
-Kinds: resid, attn, mlp (layer x role) and head (head x role group).
+Kinds: resid, attn, mlp (layer x role), head (head x role group), and attn_in: the input of the
+attention of one layer at the role tokens (a path patch: the residual stream itself is not changed).
 
 Usage: python -m neg.e2_patch <out.npz> --lang hi --mode neg --kind resid [--n 64]
 """
