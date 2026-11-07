@@ -4,8 +4,8 @@ Course project for CL3.412 Mechanistic Interpretability (IIIT Hyderabad), by Ish
 
 Each item has two persons and one negation, for example "Aman does not like curd, but Arjun likes curd. Who likes curd?".
 A minimal partner has the same words with the negation in the other clause. We study how Qwen3-4B attaches the negation
-to the correct person in Hindi and French. The base task has two names as options; the new sets also ask yes/no
-questions about one person.
+to the correct person in Hindi and French: behaviour (E1) and activation patching (E2). The base task has two names
+as options; the new sets also ask yes/no questions about one person.
 
 ## Requirements
 
@@ -15,15 +15,10 @@ Python 3.12, `torch`, `transformers` (4.53 or later), `peft` and `numpy`.
 ```bash
 python data/gen.py data && python data/gen2.py      # write the data sets again (they are in data/)
 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half python -m neg.e1_behaviour results/e1.json hi_test fr_test
+NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half python -m neg.e2_patch results/resid_hi.npz --lang hi --mode neg --kind resid
 ```
 
-## Settings (environment variables)
-
-| Variable | Default | Use |
-| --- | --- | --- |
-| `NEG_MODEL` | `Qwen/Qwen3-1.7B` | Model name. The main results use `Qwen/Qwen3-4B` with `NEG_DTYPE=half`. |
-| `NEG_DTYPE` | `float32` | `half` is necessary for Qwen3-4B on an 11 GB GPU. |
-| `NEG_SHOTS` | `0` | Number of fixed examples before the item (0 to 4). |
+`jobs/cmds/*.txt` are the command lists of all runs.
 
 ## Layout
 
@@ -34,6 +29,31 @@ NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half python -m neg.e1_behaviour results/e1.jso
 | `data/shots.py` | Four fixed examples for each language (used only with `NEG_SHOTS`). |
 | `neg/common.py` | Prompt format, role label for each token, model, hooks. |
 | `neg/e1_behaviour.py` | E1: accuracy and logit difference for each condition. |
+| `neg/e2_patch.py` | E2: activation patching (residual, attention, MLP, heads) with role alignment. |
+| `neg/pairs.py` | Recipient, partner and donor items for patching. |
+| `neg/e2_heads.py` | E2: head ranking and sets of heads. |
+| `neg/e2_attn.py` | E2: attention patterns from the option names and the last position. |
+| `neg/e2w_patch.py` | E2 on the explicit worlds (target fact and other facts). |
+
+## Settings (environment variables)
+
+| Variable | Default | Use |
+| --- | --- | --- |
+| `NEG_MODEL` | `Qwen/Qwen3-1.7B` | Model name. The main results use `Qwen/Qwen3-4B` with `NEG_DTYPE=half`. |
+| `NEG_DTYPE` | `float32` | `half` is necessary for Qwen3-4B on an 11 GB GPU. |
+| `NEG_SHOTS` | `0` | Number of fixed examples before the item (0 to 4). |
+
+## Run on ada
+
+```bash
+rsync -a --exclude results --exclude logs ./ ada:cursor/negation/
+# on ada, in ~/cursor/negation
+sbatch --gres=gpu:2 --cpus-per-task=8 --mem=48G -J name jobs/multi.sh jobs/cmds/<file>.txt
+```
+
+`jobs/multi.sh` builds the environment on the node (`/scratch/$USER/venvs/negation`), refuses GPUs
+older than the RTX 2080 Ti, and divides the command lines between the GPUs of the job.
+Only partition `u22` is open to our account, so the jobs use `--constraint=2080ti`.
 
 ## Data sets
 
