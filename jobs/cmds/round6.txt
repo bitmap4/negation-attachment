@@ -1,0 +1,68 @@
+das_hi_a NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_hi_a.json --train hi_disc --eval hi_test fr_test hi_test<fr_test --grid c12:10,12,14,16;c12l:13;oA:17,18,19,20 --vars W,Z,ANS --k 8 --steps 400 --bs 6 --scale 64 --neval 200 --save results/e3/Q_hi
+das_hi_b NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_hi_b.json --train hi_disc --eval hi_test fr_test hi_test<fr_test --grid opt:18,19,20;lB:21,23;end:25,27,30 --vars W,Z,ANS --k 8 --steps 400 --bs 6 --scale 64 --neval 200 --save results/e3/Q_hi
+das_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_fr.json --train fr_disc --eval fr_test hi_test fr_test<hi_test --grid c12:10,12,14,16;c12l:13;oA:17,18,19,20;opt:18,19,20;lB:21,23;end:25,27,30 --vars W,Z,ANS --k 8 --steps 250 --bs 12 --scale 64 --neval 200 --save results/e3/Q_fr
+e2_heads_opt_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_heads results/e2_4b/heads_opt_hi.json --lang hi --layers 16-19 --dest opt
+das_hi_k1 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_hi_k1.json --train hi_disc --eval hi_test fr_test hi_test<fr_test --grid c12:13;opt:19;end:27 --vars W,ANS --k 1 --steps 400 --bs 6 --scale 64 --neval 200 --save results/e3/Q_hi
+e1_ext_test_4b NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e1_behaviour results/e1_ext_test_4b.json hi_hab_test fr_hab_test hi_never_test fr_never_test hi_nolonger_test fr_nolonger_test hi_nothing_test fr_nothing_test hi_lex_test fr_lex_test hi_focus_test fr_focus_test hi_quant_test fr_quant_test hi_w1_test fr_w1_test hi_nest_test fr_nest_test hi_w2_test fr_w2_test --bs 12
+das_fr_k1 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_fr_k1.json --train fr_disc --eval fr_test hi_test fr_test<hi_test --grid c12:13;opt:19;end:27 --vars W,ANS --k 1 --steps 250 --bs 12 --scale 64 --neval 200 --save results/e3/Q_fr
+e2_heads_opt_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_heads results/e2_4b/heads_opt_fr.json --lang fr --layers 16-19 --dest opt
+das_hi_k2 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_hi_k2.json --train hi_disc --eval hi_test fr_test hi_test<fr_test --grid c12:13;opt:19;end:27 --vars W,ANS --k 2 --steps 400 --bs 6 --scale 64 --neval 200 --save results/e3/Q_hi
+e2f_hab_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/hab_fr.npz --lang fr --set hab_test --mode neg --kind resid --n 48 --stride 2 --bs 40
+das_fr_k2 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_fr_k2.json --train fr_disc --eval fr_test hi_test fr_test<hi_test --grid c12:13;opt:19;end:27 --vars W,ANS --k 2 --steps 250 --bs 12 --scale 64 --neval 200 --save results/e3/Q_fr
+e2_heads_lbt_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_heads results/e2_4b/heads_lbt_hi.json --lang hi --layers 19-24 --dest lbt
+das_hi_k4 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_hi_k4.json --train hi_disc --eval hi_test fr_test hi_test<fr_test --grid c12:13;opt:19;end:27 --vars W,ANS --k 4 --steps 400 --bs 6 --scale 64 --neval 200 --save results/e3/Q_hi
+e2f_never_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/never_fr.npz --lang fr --set never_test --mode neg --kind resid --n 48 --stride 2 --bs 40
+das_fr_k4 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_fr_k4.json --train fr_disc --eval fr_test hi_test fr_test<hi_test --grid c12:13;opt:19;end:27 --vars W,ANS --k 4 --steps 250 --bs 12 --scale 64 --neval 200 --save results/e3/Q_fr
+e2_heads_lbt_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_heads results/e2_4b/heads_lbt_fr.json --lang fr --layers 19-24 --dest lbt
+das_hi_k32 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_hi_k32.json --train hi_disc --eval hi_test fr_test hi_test<fr_test --grid c12:13;opt:19;end:27 --vars W,ANS --k 32 --steps 400 --bs 6 --scale 64 --neval 200 --save results/e3/Q_hi
+e2f_nolonger_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/nolonger_fr.npz --lang fr --set nolonger_test --mode neg --kind resid --n 48 --stride 2 --bs 40
+das_fr_k32 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e3_das results/e3/das_fr_k32.json --train fr_disc --eval fr_test hi_test fr_test<hi_test --grid c12:13;opt:19;end:27 --vars W,ANS --k 32 --steps 250 --bs 12 --scale 64 --neval 200 --save results/e3/Q_fr
+e2_heads_end_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_heads results/e2_4b/heads_end_hi.json --lang hi --layers 23-26 --dest end
+noop5_0 neg.noop
+e2f_nothing_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/nothing_fr.npz --lang fr --set nothing_test --mode neg --kind resid --n 48 --stride 2 --bs 40
+noop5_2 neg.noop
+e2_heads_end_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_heads results/e2_4b/heads_end_fr.json --lang fr --layers 23-26 --dest end
+noop6_0 neg.noop
+e2f_lex_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/lex_fr.npz --lang fr --set lex_test --mode neg --kind resid --n 48 --stride 2 --bs 40
+noop6_2 neg.noop
+e4_readout NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e4_oracle results/e4/readout.json --mode readout --sets fr_test hi_test --n 300
+noop7_0 neg.noop
+e2f_focus_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/focus_fr.npz --lang fr --set focus_test --mode neg --kind resid --n 48 --stride 2 --bs 40
+noop7_2 neg.noop
+e4_interv NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e4_oracle results/e4/interv.json --mode interv --langs fr hi --n 96
+noop8_0 neg.noop
+noop8_1 neg.noop
+noop8_2 neg.noop
+e2w_w2_target_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2w_patch results/e2w/w2_target_hi.npz --lang hi --set w2 --mode target --n 64 --bs 20
+noop9_0 neg.noop
+noop9_1 neg.noop
+noop9_2 neg.noop
+e2w_w2_sib_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2w_patch results/e2w/w2_sib_hi.npz --lang hi --set w2 --mode sib --n 64 --bs 20 --stride 2
+noop10_0 neg.noop
+noop10_1 neg.noop
+noop10_2 neg.noop
+e2w_w2_cross_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2w_patch results/e2w/w2_cross_hi.npz --lang hi --set w2 --mode cross --n 64 --bs 20 --stride 2
+noop11_0 neg.noop
+noop11_1 neg.noop
+noop11_2 neg.noop
+e2f_hab_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/hab_hi.npz --lang hi --set hab_test --mode neg --kind resid --n 48 --stride 2 --bs 32
+noop12_0 neg.noop
+noop12_1 neg.noop
+noop12_2 neg.noop
+e2f_never_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/never_hi.npz --lang hi --set never_test --mode neg --kind resid --n 48 --stride 2 --bs 32
+noop13_0 neg.noop
+noop13_1 neg.noop
+noop13_2 neg.noop
+e2f_nolonger_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/nolonger_hi.npz --lang hi --set nolonger_test --mode neg --kind resid --n 48 --stride 2 --bs 32
+noop14_0 neg.noop
+noop14_1 neg.noop
+noop14_2 neg.noop
+e2f_nothing_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/nothing_hi.npz --lang hi --set nothing_test --mode neg --kind resid --n 48 --stride 2 --bs 32
+noop15_0 neg.noop
+noop15_1 neg.noop
+noop15_2 neg.noop
+e2f_lex_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/lex_hi.npz --lang hi --set lex_test --mode neg --kind resid --n 48 --stride 2 --bs 32
+noop16_0 neg.noop
+noop16_1 neg.noop
+noop16_2 neg.noop
+e2f_focus_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True neg.e2_patch results/e2f/focus_hi.npz --lang hi --set focus_test --mode neg --kind resid --n 48 --stride 2 --bs 32
