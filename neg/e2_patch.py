@@ -32,6 +32,7 @@ ap.add_argument("--set", default="disc")
 ap.add_argument("--mode", default="neg")
 ap.add_argument("--kind", default="resid")
 ap.add_argument("--n", type=int, default=64)
+ap.add_argument("--stride", type=int, default=1)
 ap.add_argument("--pb", type=int, default=4, help="pairs in one chunk")
 ap.add_argument("--bs", type=int, default=72, help="sequences in one forward pass")
 ap.add_argument("--seed", type=int, default=0)
@@ -52,8 +53,8 @@ else:
     cols = ROLES + list(WIDE) + (["all"] if a.kind in ("attn", "mlp") else [])
     groups = [[r] for r in ROLES] + list(WIDE.values()) + ([GROUPS["all"] + ["ins"]] if a.kind in ("attn", "mlp") else [])
     top = net.L + 1 if a.kind == "resid" else net.L
-    sites = [(a.kind, l) for l in range(0, top)]
-    units = [(l, None) for l in range(0, top)]
+    sites = [(a.kind, l) for l in range(0, top, a.stride)]
+    units = [(l, None) for l in range(0, top, a.stride)]
 
 res = np.full((n, len(units), len(cols)), np.nan, dtype=np.float32)
 encR = C.encode(tok, [t[0] for t in trip])
