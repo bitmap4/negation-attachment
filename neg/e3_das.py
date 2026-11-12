@@ -15,7 +15,7 @@ Usage:
   python -m neg.e3_das <out.json> --train hi_disc --eval hi_test fr_test "hi_test<fr_test" \
       --grid "oA:16,18,20;end:26,28" --vars W,Z,ANS --k 8
 An eval name "X<Y" takes the base items from X and the source items from Y.
---save <dir> writes the learned bases.
+--load <dir> uses saved bases (no training); --save <dir> writes them.
 """
 import argparse, json, os, random, time
 import torch
@@ -34,6 +34,7 @@ ap.add_argument("--lr", type=float, default=3e-3)
 ap.add_argument("--neval", type=int, default=300)
 ap.add_argument("--scale", type=float, default=1.0, help="loss scale; use 64 with float16")
 ap.add_argument("--seed", type=int, default=0)
+ap.add_argument("--load", default="")
 ap.add_argument("--save", default="")
 a = ap.parse_args()
 
@@ -182,10 +183,13 @@ for role, layer in grid:
     site = ("resid", layer)
     for var in a.vars.split(","):
         fn = f"{role}_L{layer}_{var}_k{a.k}.pt"
-        Q, log = train(site, role, var)
-        if a.save:
-            os.makedirs(a.save, exist_ok=True)
-            torch.save(Q.cpu(), os.path.join(a.save, fn))
+        if a.load:
+            Q, log = torch.load(os.path.join(a.load, fn), map_location="cuda").float(), []
+        else:
+            Q, log = train(site, role, var)
+            if a.save:
+                os.makedirs(a.save, exist_ok=True)
+                torch.save(Q.cpu(), os.path.join(a.save, fn))
         r = {"role": role, "layer": layer, "var": var, "k": a.k, "log": log, "eval": {}}
         for name in a.eval:
             bn, sn = name.split("<") if "<" in name else (name, name)
