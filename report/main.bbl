@@ -1,0 +1,108 @@
+\begin{thebibliography}{14}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Dumas et~al.(2025)Dumas, Wendler, Veselovsky, Monea, and
+  West}]{dumas2025tongue}
+Cl{\'e}ment Dumas, Chris Wendler, Veniamin Veselovsky, Giovanni Monea, and
+  Robert West. 2025.
+\newblock Separating tongue from thought: Activation patching reveals
+  language-agnostic concept representations in transformers.
+\newblock In \emph{Proceedings of the 63rd Annual Meeting of the Association
+  for Computational Linguistics}.
+
+\bibitem[{Feng and Steinhardt(2024)}]{feng2024binding}
+Jiahai Feng and Jacob Steinhardt. 2024.
+\newblock How do language models bind entities in context?
+\newblock In \emph{The Twelfth International Conference on Learning
+  Representations}.
+
+\bibitem[{Geiger et~al.(2021)Geiger, Lu, Icard, and
+  Potts}]{geiger2021abstraction}
+Atticus Geiger, Hanson Lu, Thomas Icard, and Christopher Potts. 2021.
+\newblock Causal abstractions of neural networks.
+\newblock In \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[{Ghandeharioun et~al.(2024)Ghandeharioun, Caciularu, Pearce, Dixon,
+  and Geva}]{ghandeharioun2024patchscopes}
+Asma Ghandeharioun, Avi Caciularu, Adam Pearce, Lucas Dixon, and Mor Geva.
+  2024.
+\newblock Patchscopes: A unifying framework for inspecting hidden
+  representations of language models.
+\newblock In \emph{Proceedings of the 41st International Conference on Machine
+  Learning}.
+
+\bibitem[{Gur-Arieh et~al.(2026)Gur-Arieh, Geva, and
+  Geiger}]{gurarieh2026mixing}
+Yoav Gur-Arieh, Mor Geva, and Atticus Geiger. 2026.
+\newblock Mixing mechanisms: How language models retrieve bound entities
+  in-context.
+\newblock In \emph{The Fourteenth International Conference on Learning
+  Representations}.
+
+\bibitem[{Karvonen et~al.(2026)Karvonen, Chua, Dumas, Fraser-Taliente,
+  Kantamneni, Minder, Ong, Sen~Sharma, Wen, Evans, and
+  Marks}]{karvonen2026oracles}
+Adam Karvonen, James Chua, Cl{\'e}ment Dumas, Kit Fraser-Taliente, Subhash
+  Kantamneni, Julian Minder, Euan Ong, Arnab Sen~Sharma, Daniel Wen, Owain
+  Evans, and Samuel Marks. 2026.
+\newblock Activation oracles: Training and evaluating {LLMs} as general-purpose
+  activation explainers.
+\newblock In \emph{Proceedings of the 43rd International Conference on Machine
+  Learning}.
+
+\bibitem[{Kassner and Sch{\"u}tze(2020)}]{kassner2020negated}
+Nora Kassner and Hinrich Sch{\"u}tze. 2020.
+\newblock Negated and misprimed probes for pretrained language models: Birds
+  can talk, but cannot fly.
+\newblock In \emph{Proceedings of the 58th Annual Meeting of the Association
+  for Computational Linguistics}.
+
+\bibitem[{Pan et~al.(2026)Pan, Chen, and Steinhardt}]{pan2026latentqa}
+Alexander Pan, Lijie Chen, and Jacob Steinhardt. 2026.
+\newblock {LatentQA}: Teaching {LLMs} to decode activations into natural
+  language.
+\newblock In \emph{The Fourteenth International Conference on Learning
+  Representations}.
+
+\bibitem[{She et~al.(2023)She, Potts, Bowman, and Geiger}]{she2023scone}
+Jingyuan~Selena She, Christopher Potts, Samuel~R. Bowman, and Atticus Geiger.
+  2023.
+\newblock {ScoNe}: Benchmarking negation reasoning in language models with
+  fine-tuning and in-context learning.
+\newblock In \emph{Proceedings of the 61st Annual Meeting of the Association
+  for Computational Linguistics (Volume 2: Short Papers)}.
+
+\bibitem[{Wang et~al.(2023)Wang, Variengien, Conmy, Shlegeris, and
+  Steinhardt}]{wang2023ioi}
+Kevin Wang, Alexandre Variengien, Arthur Conmy, Buck Shlegeris, and Jacob
+  Steinhardt. 2023.
+\newblock Interpretability in the wild: a circuit for indirect object
+  identification in {GPT}-2 small.
+\newblock In \emph{The Eleventh International Conference on Learning
+  Representations}.
+
+\bibitem[{Wu et~al.(2023)Wu, Geiger, Icard, Potts, and Goodman}]{wu2023scale}
+Zhengxuan Wu, Atticus Geiger, Thomas Icard, Christopher Potts, and Noah~D.
+  Goodman. 2023.
+\newblock Interpretability at scale: Identifying causal mechanisms in {Alpaca}.
+\newblock In \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[{Yang et~al.(2025)}]{yang2025qwen3}
+An~Yang et~al. 2025.
+\newblock Qwen3 technical report.
+\newblock arXiv:2505.09388.
+
+\bibitem[{Zhang and Nanda(2024)}]{zhang2024patching}
+Fred Zhang and Neel Nanda. 2024.
+\newblock Towards best practices of activation patching in language models:
+  Metrics and methods.
+\newblock In \emph{The Twelfth International Conference on Learning
+  Representations}.
+
+\bibitem[{Zhou et~al.(2026)Zhou, Zhou, Jia, and May}]{zhou2026negation}
+Zhejian Zhou, Tianyi Zhou, Robin Jia, and Jonathan May. 2026.
+\newblock How language models process negation.
+\newblock In \emph{Proceedings of the 43rd International Conference on Machine
+  Learning}.
+
+\end{thebibliography}

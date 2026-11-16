@@ -7,6 +7,8 @@ A minimal partner has the same words with the negation in the other clause. We s
 to the correct person in Hindi and French: behaviour (E1), activation patching (E2), distributed alignment search (E3)
 and an activation oracle (E4).
 
+The report is `report/main.pdf`. The numbers are in `results/RESULTS.md` and the figures in `results/fig/`.
+
 ## Requirements
 
 Python 3.12, `torch`, `transformers` (4.53 or later), `peft`, `numpy`, and `matplotlib` for the figures.
@@ -39,7 +41,10 @@ python -m neg.figs                                  # figures from the files in 
 | `neg/e2w_patch.py` | E2 on the explicit worlds (target fact and other facts). |
 | `neg/e3w_das.py` | E3 on the explicit worlds: polarity for each fact, target and collateral scores. |
 | `neg/figs.py` | All figures (`results/fig/`). |
+| `report/` | The report (`main.pdf`). Build: `latexmk -lualatex main.tex`. |
 | `results/RESULTS.md` | Summary of the results with the numbers. |
+| `jobs/` | Slurm scripts for ada. `jobs/cmds/*.txt` are the command lists that were run. |
+| `results/` | Outputs copied from ada. |
 
 ## Settings (environment variables)
 
