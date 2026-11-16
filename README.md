@@ -39,6 +39,7 @@ python -m neg.figs                                  # figures from the files in 
 | `neg/e2w_patch.py` | E2 on the explicit worlds (target fact and other facts). |
 | `neg/e3w_das.py` | E3 on the explicit worlds: polarity for each fact, target and collateral scores. |
 | `neg/figs.py` | All figures (`results/fig/`). |
+| `results/RESULTS.md` | Summary of the results with the numbers. |
 
 ## Settings (environment variables)
 
