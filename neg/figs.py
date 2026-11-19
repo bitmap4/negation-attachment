@@ -1,5 +1,6 @@
 """Figures for the report, from the files in results/. Usage: python -m neg.figs [results dir] [output dir]
-With NEG_NOTITLE=1 the figures have no title line and a white background (for the paper)."""
+With NEG_NOTITLE=1 the figures have no title line and a white background (for the paper).
+NEG_FIGSCALE and NEG_FONT change the figure size and the font (for slides)."""
 import json, os, sys
 import numpy as np
 import matplotlib
@@ -15,7 +16,16 @@ INK, INK2, MUTED, SURF, GRID, AXIS = "#0b0b0b", "#52514e", "#898781", "#ffffff" 
 S = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"]          # categorical slots 1 to 4, fixed order
 DIV = LinearSegmentedColormap.from_list("div", ["#9c2a2a", "#e34948", "#f0efec", "#3987e5", "#0d366b"])
 LANG = {"hi": "Hindi", "fr": "French"}
-plt.rcParams.update({"font.family": "sans-serif", "font.size": 9, "axes.edgecolor": AXIS, "axes.labelcolor": INK2,
+FONT = os.environ.get("NEG_FONT", "sans-serif")       # font family, for example "Gill Sans" for slides
+FIGSCALE = float(os.environ.get("NEG_FIGSCALE", "1"))   # below 1: smaller figures, so the text is larger on a slide
+if FIGSCALE != 1:
+    _subplots = plt.subplots
+
+    def _scaled(*a, **k):
+        if "figsize" in k: k["figsize"] = tuple(v * FIGSCALE for v in k["figsize"])
+        return _subplots(*a, **k)
+    plt.subplots = _scaled
+plt.rcParams.update({"font.family": FONT, "font.size": 9, "axes.edgecolor": AXIS, "axes.labelcolor": INK2,
                      "xtick.color": MUTED, "ytick.color": MUTED, "text.color": INK, "axes.facecolor": SURF,
                      "figure.facecolor": SURF, "savefig.facecolor": SURF, "axes.spines.top": False, "axes.spines.right": False})
 
