@@ -233,7 +233,7 @@ English, and the correct answer on a negative question must overcome them.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.86\textwidth]{fig/e2_heat.png}
+\includegraphics[width=0.80\textwidth]{fig/e2_heat.png}
 \caption{Recovery when the residual stream of the recipient is replaced by that of its minimal partner, at one role (left part of each panel) or at a group of roles (right part). ``Both clauses'' is all tokens of the two clauses except the negation cue, and ``context'' adds the cue.}
 \label{fig:heat}
 \end{figure*}
@@ -286,7 +286,7 @@ polarity of the question next, and the attachment last.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.93\textwidth]{fig/e2_flow.png}
+\includegraphics[width=0.86\textwidth]{fig/e2_flow.png}
 \caption{Recovery by layer for four groups of tokens and five donors.}
 \label{fig:flow}
 \end{figure*}
@@ -460,11 +460,16 @@ subspace, a Hindi source changes the answer of a French base in 0.83 of the
 pairs, as often as a French source does (0.82), so the Hindi clause tokens
 hold the attachment in the directions that French uses. The same subspace
 controls a Hindi base in only half of the pairs. With the Hindi subspace, a
-French source changes a Hindi base in 0.38 of the pairs. The simplest reading is that the Hindi context holds the
-attachment in the shared directions and in further directions that the
-French subspace does not cover, and that training on Hindi finds mostly
-the latter. The shared part of the mechanism is partial in the context,
-larger at the options and complete at the last position.
+French source changes a Hindi base in 0.38 of the pairs. A subspace trained on both languages at once scores 0.75 on Hindi and
+0.63 on French (mean of two seeds), between the monolingual scores and the
+transfer scores. Directions that serve both languages therefore exist, and
+training on Hindi alone does not find them. With this joint subspace a Hindi
+source changes a French base in 0.92 of the pairs, and a French source
+changes a Hindi base in 0.57. The French clause tokens thus hold a weaker
+code than the Hindi ones, which agrees with the patching result that a part
+of the French attachment is on the cue tokens, outside this site. The shared
+part of the mechanism is partial in the context, larger at the options and
+complete at the last position.
 
 \subsection{Other negation forms}
 
@@ -678,9 +683,9 @@ The study has limits. The full analysis uses one model. The DAS scores on the
 main sites have three seeds, and the other DAS scores have one or two.
 Recovery is not additive, since one head, one layer or one clause alone does
 little, and we therefore describe sets of heads and cannot give a role to each
-head. The head ranking used 32 pairs. Our reading of the context code, with
-shared directions and further Hindi directions, is an inference from transfer
-scores, and we did not test it directly. A fluent reader has not yet checked
+head. The head ranking used 32 pairs. We have not separated the code on the
+clause tokens from the code on the cue tokens, which matters most for French.
+A fluent reader has not yet checked
 all templates of the further sets, and the exception results show that a
 result can depend on one wording.
 

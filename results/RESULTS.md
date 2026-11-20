@@ -165,6 +165,8 @@ Three seeds (0, 1, 2), 8 dimensions. Mean (minimum-maximum).
 
 Pairs with one item of each language, W at the clause tokens: French subspace, French base, Hindi source 0.83 (0.79-0.91); Hindi subspace, Hindi base, French source 0.38 (0.34-0.43).
 
+Joint subspace (trained on `hi_disc+fr_disc`, 8 dimensions, seeds 0 / 1), W at the clause tokens, layer 14: Hindi 0.77 / 0.72, French 0.54 / 0.72, Hindi base with French source 0.58 / 0.55, French base with Hindi source 0.85 / 0.98. With 16 dimensions (seed 0): 0.74, 0.66, 0.56, 0.99. A subspace for both languages exists; it is weaker than the subspaces for one language.
+
 ### DAS on the explicit worlds, second seed
 
 Site: all tokens of the fact after the name. Target same slot / target other slot / other facts stay correct.

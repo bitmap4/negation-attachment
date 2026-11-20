@@ -42,7 +42,8 @@ python -m neg.figs && python -m neg.show_checks     # figures and tables from th
 | `neg/e3w_das.py` | E3 on the explicit worlds: polarity for each fact, target and collateral scores. |
 | `neg/e2_ablate.py` | E2: head sets on the test split, random heads, resample ablation, and the test of H3 (shortcut heads). |
 | `neg/e2q_patch.py` | E2 on the quantifier set: patching between two quantifier sentences. |
-| `neg/e1_except.py` | E1: the Hindi "nobody except X" items with other wordings of the exception. |
+| `neg/e1_except.py` | E1: "nobody except X" with other wordings and positions of the exception (Hindi and French). |
+| `neg/demo.py` | One minimal pair with the main patches, for a demonstration (`results/demo_hi.txt`, `results/demo_fr.txt`). |
 | `neg/figs.py` | All figures (`results/fig/`). `show_e2.py`, `show_e3.py` and `show_checks.py` print tables. |
 | `report/` | The report (`main.pdf`). Build: `latexmk -lualatex main.tex`. |
 | `results/RESULTS.md` | Summary of the results with the numbers. |

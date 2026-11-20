@@ -15,6 +15,7 @@ Usage:
   python -m neg.e3_das <out.json> --train hi_disc --eval hi_test fr_test "hi_test<fr_test" \
       --grid "oA:16,18,20;end:26,28" --vars W,Z,ANS --k 8
 An eval name "X<Y" takes the base items from X and the source items from Y.
+A train name "X+Y" joins two sets, for example hi_disc+fr_disc (one subspace for both languages).
 --load <dir> uses saved bases (no training); --save <dir> writes them.
 """
 import argparse, json, os, random, time
@@ -49,7 +50,9 @@ _data = {}
 def data(name):
     """Items with a negated mention (not the affirmative controls), and their encodings."""
     if name not in _data:
-        its = [it for it in C.load(name) if "neg" in it and it.get("fam") != 0]
+        its = []
+        for nm in name.split("+"):          # "hi_disc+fr_disc": the items of both sets
+            its += [it for it in C.load(nm) if "neg" in it and it.get("fam") != 0]
         _data[name] = (its, C.encode(tok, its))
     return _data[name]
 
