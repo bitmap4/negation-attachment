@@ -1,0 +1,145 @@
+model: Qwen/Qwen3-4B
+
+==== pair 0
+R: विजय को समुद्र पसंद नहीं है, लेकिन विक्रम को समुद्र पसंद है।  किसे समुद्र पसंद है?  A: विजय  B: विक्रम
+   answer B (logit A - logit B = -24.0), correct B
+P: विजय को समुद्र पसंद है, लेकिन विक्रम को समुद्र पसंद नहीं है।  किसे समुद्र पसंद है?  A: विजय  B: विक्रम
+   answer A (logit A - logit B = +31.4), correct A
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              -24.0   B        0.00
+  clause 1, layer 13                                      -22.8   B        0.02
+  clause 2, layer 13                                      -18.3   B        0.10
+  both clauses, layer 13                                  +31.5   A        1.00
+  both clauses and the cue, layer 15                      +30.8   A        0.99
+  both clauses, layer 19                                  -23.7   B        0.01
+  option tokens, layer 13                                 -23.8   B        0.00
+  option tokens, layer 19                                 +29.2   A        0.96
+  option tokens, layer 20                                 +26.9   A        0.92
+  last position, layer 19                                 -24.0   B       -0.00
+  last position, layer 25                                 +28.9   A        0.95
+  8 heads at the option tokens (layers 16-19)             +29.5   A        0.96
+      L16H17 L17H4 L17H15 L18H8 L18H11 L18H15 L19H10 L19H31
+  8 random heads of the same layers                       -23.9   B        0.00
+      L16H24 L17H8 L17H28 L18H6 L19H9 L19H13 L19H22 L19H29
+  the other 120 heads of these layers                     -20.1   B        0.07
+
+==== pair 1
+R: देव को सिनेमा पसंद नहीं है, लेकिन सीता को सिनेमा पसंद है।  किसे सिनेमा पसंद है?  A: सीता  B: देव
+   answer A (logit A - logit B = +29.2), correct A
+P: देव को सिनेमा पसंद है, लेकिन सीता को सिनेमा पसंद नहीं है।  किसे सिनेमा पसंद है?  A: सीता  B: देव
+   answer B (logit A - logit B = -22.8), correct B
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              +29.2   A       -0.00
+  clause 1, layer 13                                      +29.2   A        0.00
+  clause 2, layer 13                                      +25.7   A        0.07
+  both clauses, layer 13                                  -22.9   B        1.00
+  both clauses and the cue, layer 15                      -22.6   B        1.00
+  both clauses, layer 19                                  +29.3   A       -0.00
+  option tokens, layer 13                                 +28.6   A        0.01
+  option tokens, layer 19                                 -22.8   B        1.00
+  option tokens, layer 20                                 -14.0   B        0.83
+  last position, layer 19                                 +29.3   A       -0.00
+  last position, layer 25                                 -18.4   B        0.92
+  8 heads at the option tokens (layers 16-19)             -22.6   B        1.00
+      L16H17 L17H4 L17H15 L18H8 L18H11 L18H15 L19H10 L19H31
+  8 random heads of the same layers                       +29.3   A       -0.00
+      L16H24 L17H8 L17H28 L18H6 L19H9 L19H13 L19H22 L19H29
+  the other 120 heads of these layers                     +29.7   A       -0.01
+
+==== pair 2
+R: अर्जुन को समुद्र पसंद नहीं है, लेकिन लीला को समुद्र पसंद है।  किसे समुद्र पसंद नहीं है?  A: अर्जुन  B: लीला
+   answer A (logit A - logit B = +31.8), correct A
+P: अर्जुन को समुद्र पसंद है, लेकिन लीला को समुद्र पसंद नहीं है।  किसे समुद्र पसंद नहीं है?  A: अर्जुन  B: लीला
+   answer B (logit A - logit B = -23.9), correct B
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              +31.7   A        0.00
+  clause 1, layer 13                                      +31.6   A        0.00
+  clause 2, layer 13                                      +25.0   A        0.12
+  both clauses, layer 13                                  -22.8   B        0.98
+  both clauses and the cue, layer 15                      -23.6   B        1.00
+  both clauses, layer 19                                  +32.0   A       -0.00
+  option tokens, layer 13                                 +31.6   A        0.00
+  option tokens, layer 19                                 -24.2   B        1.01
+  option tokens, layer 20                                 -24.8   B        1.02
+  last position, layer 19                                 +31.8   A        0.00
+  last position, layer 25                                 -23.0   B        0.98
+  8 heads at the option tokens (layers 16-19)             -23.7   B        1.00
+      L16H17 L17H4 L17H15 L18H8 L18H11 L18H15 L19H10 L19H31
+  8 random heads of the same layers                       +31.7   A        0.00
+      L16H24 L17H8 L17H28 L18H6 L19H9 L19H13 L19H22 L19H29
+  the other 120 heads of these layers                     +31.3   A        0.01
+
+==== pair 3
+R: ईशा को सिनेमा पसंद नहीं है, लेकिन अर्जुन को सिनेमा पसंद है।  किसे सिनेमा पसंद नहीं है?  A: अर्जुन  B: ईशा
+   answer B (logit A - logit B = -25.1), correct B
+P: ईशा को सिनेमा पसंद है, लेकिन अर्जुन को सिनेमा पसंद नहीं है।  किसे सिनेमा पसंद नहीं है?  A: अर्जुन  B: ईशा
+   answer A (logit A - logit B = +27.7), correct A
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              -25.4   B       -0.01
+  clause 1, layer 13                                      -23.7   B        0.03
+  clause 2, layer 13                                      -21.6   B        0.07
+  both clauses, layer 13                                  +26.0   A        0.97
+  both clauses and the cue, layer 15                      +26.5   A        0.98
+  both clauses, layer 19                                  -25.1   B       -0.00
+  option tokens, layer 13                                 -25.1   B       -0.00
+  option tokens, layer 19                                 +27.8   A        1.00
+  option tokens, layer 20                                 +14.4   A        0.75
+  last position, layer 19                                 -25.2   B       -0.00
+  last position, layer 25                                 +20.0   A        0.85
+  8 heads at the option tokens (layers 16-19)             +20.3   A        0.86
+      L16H17 L17H4 L17H15 L18H8 L18H11 L18H15 L19H10 L19H31
+  8 random heads of the same layers                       -25.2   B       -0.00
+      L16H24 L17H8 L17H28 L18H6 L19H9 L19H13 L19H22 L19H29
+  the other 120 heads of these layers                     -24.8   B        0.01
+
+==== pair 4
+R: देव को दही पसंद है, लेकिन उमा को दही पसंद नहीं है।  किसे दही पसंद है?  A: देव  B: उमा
+   answer A (logit A - logit B = +30.5), correct A
+P: देव को दही पसंद नहीं है, लेकिन उमा को दही पसंद है।  किसे दही पसंद है?  A: देव  B: उमा
+   answer B (logit A - logit B = -21.9), correct B
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              +30.5   A       -0.00
+  clause 1, layer 13                                      +21.6   A        0.17
+  clause 2, layer 13                                      +29.4   A        0.02
+  both clauses, layer 13                                  -18.3   B        0.93
+  both clauses and the cue, layer 15                      -22.0   B        1.00
+  both clauses, layer 19                                  +28.5   A        0.04
+  option tokens, layer 13                                 +30.7   A       -0.00
+  option tokens, layer 19                                 -23.0   B        1.02
+  option tokens, layer 20                                 -23.7   B        1.03
+  last position, layer 19                                 +30.4   A        0.00
+  last position, layer 25                                 -21.4   B        0.99
+  8 heads at the option tokens (layers 16-19)             -22.2   B        1.01
+      L16H17 L17H4 L17H15 L18H8 L18H11 L18H15 L19H10 L19H31
+  8 random heads of the same layers                       +30.5   A        0.00
+      L16H24 L17H8 L17H28 L18H6 L19H9 L19H13 L19H22 L19H29
+  the other 120 heads of these layers                     +29.6   A        0.02
+
+==== pair 5
+R: विजय को शतरंज पसंद है, लेकिन विक्रम को शतरंज पसंद नहीं है।  किसे शतरंज पसंद है?  A: विक्रम  B: विजय
+   answer B (logit A - logit B = -27.1), correct B
+P: विजय को शतरंज पसंद नहीं है, लेकिन विक्रम को शतरंज पसंद है।  किसे शतरंज पसंद है?  A: विक्रम  B: विजय
+   answer A (logit A - logit B = +26.3), correct A
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              -27.2   B       -0.00
+  clause 1, layer 13                                      -25.0   B        0.04
+  clause 2, layer 13                                      -27.0   B        0.00
+  both clauses, layer 13                                  +24.2   A        0.96
+  both clauses and the cue, layer 15                      +27.0   A        1.01
+  both clauses, layer 19                                  -26.6   B        0.01
+  option tokens, layer 13                                 -26.9   B        0.00
+  option tokens, layer 19                                 +23.6   A        0.95
+  option tokens, layer 20                                 +18.0   A        0.84
+  last position, layer 19                                 -27.0   B        0.00
+  last position, layer 25                                 +19.4   A        0.87
+  8 heads at the option tokens (layers 16-19)             +24.2   A        0.96
+      L16H17 L17H4 L17H15 L18H8 L18H11 L18H15 L19H10 L19H31
+  8 random heads of the same layers                       -27.0   B        0.00
+      L16H24 L17H8 L17H28 L18H6 L19H9 L19H13 L19H22 L19H29
+  the other 120 heads of these layers                     -24.0   B        0.06

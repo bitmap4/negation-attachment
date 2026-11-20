@@ -1,0 +1,2 @@
+demo_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.demo --lang hi --i 0,1,2,3,4,5
+demo_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.demo --lang fr --i 0,1,2,3,4,5

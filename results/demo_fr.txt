@@ -1,0 +1,145 @@
+model: Qwen/Qwen3-4B
+
+==== pair 0
+R: Vijay n'aime pas la mer, mais Vikram aime la mer.  Qui aime la mer ?  A : Vijay  B : Vikram
+   answer B (logit A - logit B = -27.8), correct B
+P: Vijay aime la mer, mais Vikram n'aime pas la mer.  Qui aime la mer ?  A : Vijay  B : Vikram
+   answer A (logit A - logit B = +30.6), correct A
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              -27.6   B        0.00
+  clause 1, layer 13                                      -25.1   B        0.05
+  clause 2, layer 13                                      -27.9   B       -0.00
+  both clauses, layer 13                                  -16.8   B        0.19
+  both clauses and the cue, layer 15                      +29.8   A        0.99
+  both clauses, layer 19                                  -27.5   B        0.01
+  option tokens, layer 13                                 -27.7   B        0.00
+  option tokens, layer 19                                  -9.9   B        0.31
+  option tokens, layer 20                                 +13.6   A        0.71
+  last position, layer 19                                 -27.8   B        0.00
+  last position, layer 25                                 +25.0   A        0.90
+  8 heads at the option tokens (layers 16-19)              +8.7   A        0.62
+      L16H17 L17H4 L18H8 L18H11 L18H15 L19H10 L19H30 L19H31
+  8 random heads of the same layers                       -27.8   B        0.00
+      L17H2 L17H17 L17H30 L18H24 L18H31 L19H9 L19H22 L19H28
+  the other 120 heads of these layers                     -23.0   B        0.08
+
+==== pair 1
+R: Dev n'aime pas le cinéma, mais Sita aime le cinéma.  Qui aime le cinéma ?  A : Sita  B : Dev
+   answer A (logit A - logit B = +30.7), correct A
+P: Dev aime le cinéma, mais Sita n'aime pas le cinéma.  Qui aime le cinéma ?  A : Sita  B : Dev
+   answer B (logit A - logit B = -25.5), correct B
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              +29.7   A        0.02
+  clause 1, layer 13                                      +25.5   A        0.09
+  clause 2, layer 13                                      +30.5   A        0.00
+  both clauses, layer 13                                  +16.9   A        0.25
+  both clauses and the cue, layer 15                      -23.9   B        0.97
+  both clauses, layer 19                                  +30.3   A        0.01
+  option tokens, layer 13                                 +30.7   A       -0.00
+  option tokens, layer 19                                 -24.0   B        0.97
+  option tokens, layer 20                                 -15.8   B        0.83
+  last position, layer 19                                 +30.7   A        0.00
+  last position, layer 25                                 -21.1   B        0.92
+  8 heads at the option tokens (layers 16-19)              +0.4   A        0.54
+      L16H17 L17H4 L18H8 L18H11 L18H15 L19H10 L19H30 L19H31
+  8 random heads of the same layers                       +30.8   A       -0.00
+      L17H2 L17H17 L17H30 L18H24 L18H31 L19H9 L19H22 L19H28
+  the other 120 heads of these layers                     +30.1   A        0.01
+
+==== pair 2
+R: Arjun n'aime pas la mer, mais Leela aime la mer.  Qui n'aime pas la mer ?  A : Arjun  B : Leela
+   answer A (logit A - logit B = +30.0), correct A
+P: Arjun aime la mer, mais Leela n'aime pas la mer.  Qui n'aime pas la mer ?  A : Arjun  B : Leela
+   answer B (logit A - logit B = -27.2), correct B
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              +30.0   A        0.00
+  clause 1, layer 13                                      +28.9   A        0.02
+  clause 2, layer 13                                      +29.6   A        0.01
+  both clauses, layer 13                                  +22.9   A        0.12
+  both clauses and the cue, layer 15                      -26.4   B        0.99
+  both clauses, layer 19                                  +29.9   A        0.00
+  option tokens, layer 13                                 +30.3   A       -0.00
+  option tokens, layer 19                                 -26.7   B        0.99
+  option tokens, layer 20                                 -27.2   B        1.00
+  last position, layer 19                                 +30.0   A        0.00
+  last position, layer 25                                 -23.2   B        0.93
+  8 heads at the option tokens (layers 16-19)             -25.8   B        0.97
+      L16H17 L17H4 L18H8 L18H11 L18H15 L19H10 L19H30 L19H31
+  8 random heads of the same layers                       +29.9   A        0.00
+      L17H2 L17H17 L17H30 L18H24 L18H31 L19H9 L19H22 L19H28
+  the other 120 heads of these layers                     +26.6   A        0.06
+
+==== pair 3
+R: Isha n'aime pas le cinéma, mais Arjun aime le cinéma.  Qui n'aime pas le cinéma ?  A : Arjun  B : Isha
+   answer B (logit A - logit B = -26.3), correct B
+P: Isha aime le cinéma, mais Arjun n'aime pas le cinéma.  Qui n'aime pas le cinéma ?  A : Arjun  B : Isha
+   answer A (logit A - logit B = +28.8), correct A
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              -27.1   B       -0.01
+  clause 1, layer 13                                      -25.8   B        0.01
+  clause 2, layer 13                                      -25.6   B        0.01
+  both clauses, layer 13                                  -19.0   B        0.13
+  both clauses and the cue, layer 15                      +28.6   A        1.00
+  both clauses, layer 19                                  -26.0   B        0.01
+  option tokens, layer 13                                 -26.5   B       -0.00
+  option tokens, layer 19                                 +29.6   A        1.02
+  option tokens, layer 20                                 +16.4   A        0.78
+  last position, layer 19                                 -26.3   B       -0.00
+  last position, layer 25                                 +21.0   A        0.86
+  8 heads at the option tokens (layers 16-19)             +29.2   A        1.01
+      L16H17 L17H4 L18H8 L18H11 L18H15 L19H10 L19H30 L19H31
+  8 random heads of the same layers                       -26.0   B        0.00
+      L17H2 L17H17 L17H30 L18H24 L18H31 L19H9 L19H22 L19H28
+  the other 120 heads of these layers                     -25.8   B        0.01
+
+==== pair 4
+R: Dev aime le yaourt, mais Uma n'aime pas le yaourt.  Qui aime le yaourt ?  A : Dev  B : Uma
+   answer A (logit A - logit B = +29.4), correct A
+P: Dev n'aime pas le yaourt, mais Uma aime le yaourt.  Qui aime le yaourt ?  A : Dev  B : Uma
+   answer B (logit A - logit B = -27.0), correct B
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              +29.3   A        0.00
+  clause 1, layer 13                                      +20.6   A        0.16
+  clause 2, layer 13                                      +28.1   A        0.02
+  both clauses, layer 13                                  -10.0   B        0.70
+  both clauses and the cue, layer 15                      -25.8   B        0.98
+  both clauses, layer 19                                  +29.0   A        0.01
+  option tokens, layer 13                                 +29.1   A        0.01
+  option tokens, layer 19                                 -25.5   B        0.97
+  option tokens, layer 20                                 -26.2   B        0.98
+  last position, layer 19                                 +29.4   A        0.00
+  last position, layer 25                                 -23.6   B        0.94
+  8 heads at the option tokens (layers 16-19)             -24.4   B        0.95
+      L16H17 L17H4 L18H8 L18H11 L18H15 L19H10 L19H30 L19H31
+  8 random heads of the same layers                       +29.5   A       -0.00
+      L17H2 L17H17 L17H30 L18H24 L18H31 L19H9 L19H22 L19H28
+  the other 120 heads of these layers                     +28.1   A        0.02
+
+==== pair 5
+R: Vijay aime les échecs, mais Vikram n'aime pas les échecs.  Qui aime les échecs ?  A : Vikram  B : Vijay
+   answer B (logit A - logit B = -27.1), correct B
+P: Vijay n'aime pas les échecs, mais Vikram aime les échecs.  Qui aime les échecs ?  A : Vikram  B : Vijay
+   answer A (logit A - logit B = +30.0), correct A
+
+Patch from P into R                                      A - B   answer  recovery
+  the negation cue, layer 13                              -27.2   B       -0.00
+  clause 1, layer 13                                      -19.2   B        0.14
+  clause 2, layer 13                                      -26.1   B        0.02
+  both clauses, layer 13                                   +7.8   A        0.61
+  both clauses and the cue, layer 15                      +29.3   A        0.99
+  both clauses, layer 19                                  -26.7   B        0.01
+  option tokens, layer 13                                 -27.5   B       -0.01
+  option tokens, layer 19                                 +13.5   A        0.71
+  option tokens, layer 20                                 +18.3   A        0.79
+  last position, layer 19                                 -27.1   B       -0.00
+  last position, layer 25                                 +25.3   A        0.92
+  8 heads at the option tokens (layers 16-19)             +17.3   A        0.78
+      L16H17 L17H4 L18H8 L18H11 L18H15 L19H10 L19H30 L19H31
+  8 random heads of the same layers                       -26.9   B        0.00
+      L17H2 L17H17 L17H30 L18H24 L18H31 L19H9 L19H22 L19H28
+  the other 120 heads of these layers                     -25.2   B        0.03
