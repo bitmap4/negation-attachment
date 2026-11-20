@@ -40,6 +40,9 @@ python -m neg.figs                                  # figures from the files in 
 | `neg/e2_attn.py` | E2: attention patterns from the option names and the last position. |
 | `neg/e2w_patch.py` | E2 on the explicit worlds (target fact and other facts). |
 | `neg/e3w_das.py` | E3 on the explicit worlds: polarity for each fact, target and collateral scores. |
+| `neg/e2_ablate.py` | E2: head sets on the test split, random heads, resample ablation, and the test of H3 (shortcut heads). |
+| `neg/e2q_patch.py` | E2 on the quantifier set: patching between two quantifier sentences. |
+| `neg/e1_except.py` | E1: the Hindi "nobody except X" items with other wordings of the exception. |
 | `neg/figs.py` | All figures (`results/fig/`). |
 | `report/` | The report (`main.pdf`). Build: `latexmk -lualatex main.tex`. |
 | `results/RESULTS.md` | Summary of the results with the numbers. |

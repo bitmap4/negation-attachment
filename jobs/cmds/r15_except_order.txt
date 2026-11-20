@@ -1,0 +1,2 @@
+except_hi NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e1_except results/e1_except_4b.json --lang hi
+except_fr NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half neg.e1_except results/e1_except_fr_4b.json --lang fr
