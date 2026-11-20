@@ -1,4 +1,4 @@
-# Results, 16 November 2026
+# Results, 16 and 20 November 2026
 
 Model: Qwen3-4B, no examples in the prompt, float16, one RTX 2080 Ti. All numbers are from the files in this folder.
 Splits: the sites and subspaces come from `disc`; DAS and E1 numbers are on `test` (other names and objects).
@@ -24,6 +24,9 @@ Qwen3-1.7B with fixed examples also passes in Hindi (2 examples: 99%), and its F
 | Worlds: w1, w2 | 100%, 99.5-99.8% | 100%, 95.3-97.0% |
 | Nested negation | 99.2-100% | 92.5-97.1% |
 | Quantifiers, all conditions but one | 92-100% | 97-100% |
+| "Nobody except X", question about another person | **12.9%** | 100% |
+
+The Hindi failure: for किसी को ... पसंद नहीं है with X को छोड़कर, the model answers "yes" for the persons who are not the exception.
 
 ## E2, where is the attachment
 
@@ -43,7 +46,7 @@ Controls:
 - Donor with the option order changed: context patch still recovers 1.00 / 0.95 (layer 15); option patch recovers 0.07 / 0.11 at layer 19. So from layer 19 the option tokens hold the answer letter.
 - One attention layer or one MLP alone recovers little, except attention 18 (0.68, Hindi) and attention 24 at the last position (0.66).
 
-Heads (ranked on 32 pairs):
+Heads (ranked on 32 pairs, tested on 32 other pairs):
 
 | Step | Layers | Top 8 heads together | All other heads of these layers | Best single head |
 | --- | --- | --- | --- | --- |
@@ -98,7 +101,7 @@ DAS, one subspace for all facts, site = all tokens of the fact after the name:
 | French, one predicate, layer 15 | 0.74 | 0.85 | 0.99-1.00 |
 | French, two predicates, layer 15 | 0.62 | 0.54 | 0.97-0.98 |
 
-Nested negation ("it is not true that ..."): at layer 11 the fact tokens hold the polarity of the inner clause (Hindi: 0.99 for the inner-clause model, 0.45 for the composed model). In French at layer 13 the composed polarity fits better (0.91 against 0.64).
+Nested negation ("it is not true that ..."): at layer 11 the fact tokens hold the polarity of the inner clause (Hindi: 0.99 for the inner-clause model, 0.45 for the composed model). In French at layer 13 the composed polarity fits better (0.91 against 0.64). See the second seed in the checks of 20 November below.
 
 ## E4, activation oracle
 
@@ -122,22 +125,105 @@ After an intervention (96 pairs): the oracle question about the answer, on the l
 | Clause 2 only, layer 13 | 10% / 7% | 0.91 / 0.95 |
 | Option tokens, layer 19 | 98% / 95% | 0.76 / 0.92 |
 
+## Checks of 20 November 2026
+
+Tables: `python -m neg.show_checks`. Scripts: `neg/e2_ablate.py`, `neg/e2q_patch.py`, `neg/e1_except.py`, `neg/demo.py`.
+
+### Head sets on the test split, random heads, resample ablation
+
+64 pairs of the test split (the heads were ranked on the discovery split). Hindi / French.
+Resample ablation: the head outputs at the destination tokens come from a random item with the same family, question polarity and option order, and with other names and another object.
+
+| Step | Top 8, patch from the partner | 8 random heads (mean of 5 draws) | Top 8, resample: accuracy when the random item has the other negated mention | 8 random heads, resample |
+| --- | --- | --- | --- | --- |
+| To the option tokens (16-19) | 0.89 / 0.79 | 0.00 / 0.00 | 0.00 / 0.13 | 1.00 / 1.00 |
+| To "B:" and template (19-24) | 0.49 / 0.58 | 0.00 / 0.00 | 0.60 / 0.57 | 1.00 / 1.00 |
+| To the last position (23-26) | 0.85 / 0.85 | -0.01 / -0.01 | 0.00 / 0.00 | 1.00 / 1.00 |
+
+When the random item has the same negated mention, the logit difference stays (0.99-1.00 of the clean value). So the top 8 heads are necessary: no other path corrects the attachment.
+
+### H3, shortcut heads
+
+Mean ablation of each of the 512 heads in layers 20-35 at the last position. Change of the logit difference toward the correct letter, for affirmative / negative questions.
+
+- No head helps on negative questions and hurts on affirmative questions. Correlation of the two effects over the heads: 0.99 in both languages. Largest difference between the polarities: 0.51 (Hindi), 0.61 (French), on a clean logit difference of 26-28.
+- Some heads work against the correct letter for both polarities: L34H29 (+2.65 / +2.62 Hindi, +1.93 / +2.07 French), L35H24, L35H27, L25H14, L25H30. Without the best 8 (ranked on one half of the items, removed on the other half): +9.07 / +8.39 (Hindi), +6.91 / +7.45 (French).
+- L35H25 supports the correct letter most (-6.0 Hindi, -7.1 French when removed).
+
+H3 has no support on this task.
+
+### DAS seeds
+
+Three seeds (0, 1, 2), 8 dimensions. Mean (minimum-maximum).
+
+| Site, variable | Hindi | French | Hindi subspace on French | French subspace on Hindi |
+| --- | --- | --- | --- | --- |
+| Clause tokens, layer 14, W | 0.88 (0.82-0.92) | 0.82 (0.81-0.83) | 0.09 (0.05-0.11) | 0.53 (0.49-0.56) |
+| Option names, layer 18, Z | 0.65 (0.55-0.75) | 0.83 (0.71-0.90) | 0.52 (0.37-0.61) | 0.38 (0.33-0.41) |
+| Option names, layer 19, ANS | 0.93 (0.89-0.97) | 0.98 (0.97-1.00) | 0.96 (0.90-0.99) | 0.57 (0.45-0.77) |
+| Last position, layer 27, ANS | 1.00 | 1.00 | 1.00 | 0.99 (0.97-1.00) |
+
+Pairs with one item of each language, W at the clause tokens: French subspace, French base, Hindi source 0.83 (0.79-0.91); Hindi subspace, Hindi base, French source 0.38 (0.34-0.43).
+
+### DAS on the explicit worlds, second seed
+
+Site: all tokens of the fact after the name. Target same slot / target other slot / other facts stay correct.
+
+| Data | Seed 0 | Seed 1 |
+| --- | --- | --- |
+| Hindi, two predicates, layer 13 | 0.99 / 0.97 / 0.99 | 0.65 / 0.61 / 0.98-0.99 |
+| French, two predicates, layer 15 | 0.62 / 0.54 / 0.97-0.98 | 0.62 / 0.65 / 0.96 |
+
+The selectivity (other facts stay correct) is stable. The strength of the control changes with the seed.
+
+Nested negation, accuracy on the items where the two causal models give different labels (seed 0 / seed 1):
+
+| | Inner-clause polarity | Composed polarity |
+| --- | --- | --- |
+| Hindi, layer 11 | 0.99 / 0.77 | 0.45 / 0.32 |
+| Hindi, layer 13 | 0.63 / 0.69 | 0.45 / 0.27 |
+| French, layer 11 | 0.59 / 0.49 | 0.35 / 0.40 |
+| French, layer 13 | 0.64 / 0.72 | 0.91 / 0.89 |
+
+In Hindi the fact tokens hold the polarity of the inner clause at these layers. In French at layer 13 they hold the composed polarity.
+
+### Quantifier set, patching
+
+Recipient "everyone likes it", donor "nobody likes it" (same persons, object and question), 24 pairs for each condition. Hindi / French.
+
+- Quantifier word: 0.99 at layers 2-6 (French). Sentence tokens to layers 14-16. Question tokens at layer 16: 0.47 / 0.44. Options at layer 20: 0.95 / 0.94. Last position from layer 26.
+- With an exception in both sentences: French *sauf* (after the quantifier) recovers 0.85-0.94 at layers 12-14. The Hindi exception phrase (before the quantifier) recovers 0.00 at every layer; the sentence as a whole recovers 0.66-0.86.
+- Explicit worlds (yes/no options), for comparison: context to layer 15, question tokens at layers 17-19 (0.38-0.60), options at layers 20-24 (0.84-0.91), last position from layer 25.
+
+### "Nobody except X": wording and order
+
+Accuracy in percent, question about X / about another person, 500 items for each wording (`results/e1_except_4b.json`, `results/e1_except_fr_4b.json`).
+
+| Context sentence | Nobody except X | Everyone except X |
+| --- | --- | --- |
+| X को छोड़कर ... (exception first, the wording of the data set) | 95 / 14 | 100 / 98 |
+| X के अलावा ... | 89 / 67 | 89 / 97 |
+| X के सिवा ... | 98 / 57 | 3 / 96 |
+| ..., X को छोड़कर (exception last) | 79 / 57 | 84 / 94 |
+| ..., X के सिवा (exception last) | 100 / 100 | 13 / 88 |
+| केवल X ... ("only X") | 100 / 100 | |
+| Two sentences ("Nobody ... But X ...") | 100 / 100 | |
+| French: ..., sauf X (the wording of the data set) | 98 / 100 | 100 / 100 |
+| French: Sauf X, ... (exception first) | 46 / 100 | 100 / 100 |
+
+In the failing cases the model answers "yes" for all persons.
+
+### Demo
+
+`results/demo_hi.txt` and `results/demo_fr.txt`: single pairs with the patches of E2 (`python -m neg.demo --lang hi`).
+
 ## Limits
 
-- One model for the full analysis. One seed for each DAS run.
+- One model for the full analysis. Three seeds for the DAS runs on the main sites, one or two for the others.
 - Recovery is not additive: one head, one layer or one clause alone does little.
-- The head ranking used 32 pairs.
-- The worlds DAS has one seed.
+- The head ranking used 32 + 32 pairs.
 - The new Hindi and French templates are not yet checked by a fluent reader (`data/templates.md`).
 
 ## Figures (`fig/`)
 
 `e2_heat.png`, `e2_flow.png`, `e2_heads.png`, `e2_worlds.png`, `e3_das.png`, `e3_transfer.png`, `e3_forms.png`, `e4_oracle.png`.
-## To do
-
-- Sets of heads on the test split, random head sets, resample ablation
-- The test of H3: mean ablation of the late heads, for affirmative and negative questions
-- DAS seeds for the main sites and for the worlds
-- Patching between two quantifier sentences
-- The word order of the Hindi exception phrase
-- One minimal pair with the main patches, for the presentation

@@ -18,7 +18,7 @@ Python 3.12, `torch`, `transformers` (4.53 or later), `peft`, `numpy`, and `matp
 python data/gen.py data && python data/gen2.py      # write the data sets again (they are in data/)
 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half python -m neg.e1_behaviour results/e1.json hi_test fr_test
 NEG_MODEL=Qwen/Qwen3-4B NEG_DTYPE=half python -m neg.e2_patch results/resid_hi.npz --lang hi --mode neg --kind resid
-python -m neg.figs                                  # figures from the files in results/
+python -m neg.figs && python -m neg.show_checks     # figures and tables from the files in results/
 ```
 
 `jobs/cmds/*.txt` are the command lists of all runs.
@@ -43,7 +43,7 @@ python -m neg.figs                                  # figures from the files in 
 | `neg/e2_ablate.py` | E2: head sets on the test split, random heads, resample ablation, and the test of H3 (shortcut heads). |
 | `neg/e2q_patch.py` | E2 on the quantifier set: patching between two quantifier sentences. |
 | `neg/e1_except.py` | E1: the Hindi "nobody except X" items with other wordings of the exception. |
-| `neg/figs.py` | All figures (`results/fig/`). |
+| `neg/figs.py` | All figures (`results/fig/`). `show_e2.py`, `show_e3.py` and `show_checks.py` print tables. |
 | `report/` | The report (`main.pdf`). Build: `latexmk -lualatex main.tex`. |
 | `results/RESULTS.md` | Summary of the results with the numbers. |
 | `jobs/` | Slurm scripts for ada. `jobs/cmds/*.txt` are the command lists that were run. |
