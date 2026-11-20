@@ -1,11 +1,13 @@
-% Compile with LuaLaTeX: latexmk -lualatex main.tex
+% Compile with LuaLaTeX, BibTeX, and two further LuaLaTeX passes.
 \documentclass[11pt]{article}
 \usepackage{acl}
 \usepackage{fontspec}
-\setmainfont{TeX Gyre Termes}
+\IfFontExistsTF{TeX Gyre Termes}{\setmainfont{TeX Gyre Termes}}{%
+  \setmainfont[Path=/System/Library/Fonts/Supplemental/,
+    UprightFont={Times New Roman.ttf}, BoldFont={Times New Roman Bold.ttf},
+    ItalicFont={Times New Roman Italic.ttf}, BoldItalicFont={Times New Roman Bold Italic.ttf}]{Times New Roman}}
 \newfontfamily\hindifont{NotoSerifDevanagari}[
-  Path=fonts/, Extension=.ttf,
-  UprightFont=*-Regular, BoldFont=*-Bold,
+  Path=fonts/, Extension=.ttf, UprightFont=*-Regular, BoldFont=*-Bold,
   Script=Devanagari, Renderer=HarfBuzz, Scale=0.86]
 \newcommand{\hi}[1]{{\hindifont #1}}
 \usepackage{microtype}
@@ -13,682 +15,406 @@
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{graphicx}
-\usepackage{gb4e}
-\noautomath
 \newcommand{\gl}[1]{\textsc{#1}}
-\newcommand{\pend}[1]{\textcolor{red}{#1}}
 \setlength{\tabcolsep}{4pt}
 
-\title{Which Entity Does \emph{Not} Belong To?\\Negation Attachment in a Multilingual Language Model, in Hindi and French}
-
-\author{Ishaan Romil (2023114011) \and Abhyudit Singh (2023114009) \\
-  CL3.412 Mechanistic Interpretability, IIIT Hyderabad}
+\title{From Negated Facts to Answers: Tracing Negation Attachment in Hindi and French}
+\author{Ishaan Romil \and Abhyudit Singh \\
+  IIIT Hyderabad \\
+  CL3.412 Mechanistic Interpretability}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-A text with two persons and one negation has a correct reading only if the
-negation is attached to the correct person. We study how Qwen3-4B does this in
-Hindi and French, with minimal pairs that have the same words and differ only
-in the clause that holds the negation. The model answers all 39,440 held-out
-base items correctly. Activation patching gives the same route in both
-languages: the attachment is on the tokens of the two clauses up to layer 15,
-on the option names in layers 18 to 20, and on the last position from layer
-25. Eight attention heads carry the step to the options. Distributed alignment
-search finds three variables in sequence along this route: the negated mention
-in the context, a mark on the option that names the negated person, and the
-answer letter. The answer subspace transfers between the languages and to
-other negation forms, and the context subspace transfers poorly. A released
-activation oracle reads the attachment from the context and the planned answer
-from the last position, but it reads the mark on the options poorly. One
-Hindi construction, ``nobody except X'', fails in behaviour. The failure
-depends on the wording of the exception and on its position before the
-quantifier, and French fails in part when it has the same order.
+Answering a question about a negated statement requires a language model to identify which entity the negation applies to and use that relation to select an answer.
+Although multilingual evaluations have measured sensitivity to negation, how models carry entity-specific polarity to an answer across languages remains less well understood.
+We investigate Qwen3-4B on controlled Hindi and French sentence pairs using activation patching, distributed alignment search, and an activation oracle.
+On 39,440 held-out base-task items the model is correct throughout; interventions identify a progression from clause representations to answer options and then to the final position, while learned answer subspaces transfer between languages with at least 0.98 interchange accuracy and clause-level subspaces transfer less reliably (0.09 and 0.53 across directions).
+These findings suggest that answer selection can share a cross-lingual representation even when the preceding representations of negated facts differ, but this account is limited to the model and controlled constructions studied here.
 \end{abstract}
 
 \section{Introduction}
+\label{sec:intro}
+A negation is useful only when it changes the right proposition. Consider ``Aman does not like curd, but Arjun likes curd.'' A question asking who likes curd should be answered with Arjun; moving the negation to the second clause reverses the answer. The two sentences contain the same people and the same number of negation cues. Success therefore requires more than detecting whether a negative word occurs: the model must use information about \emph{which} statement it modifies.
 
-Each text below has one negation. In (\ref{ex:hi}) the question \hi{किसे दही पसंद है?}
-(``Who likes curd?'') has the answer Arjun. If the negation moves to the second
-clause, the words stay the same and the answer is Aman.
+Behavioral benchmarks have exposed difficulties with negation and scope \citep{kassner2020negated,she2023scone}, including language-dependent effects \citep{hartmann2021multilingual,vrabcova2025roots}. Mechanistic studies have examined negation in English \citep{zhou2026negation} and how models bind entities to attributes \citep{feng2024binding,gurarieh2026mixing}. These strands leave open how information about a negated fact is routed to an answer in a multilingual model, and whether the same internal directions support that computation across languages.
 
-\begin{exe}
-\ex\label{ex:hi} \gll \hi{अमन} \hi{को} \hi{दही} \hi{पसंद} \hi{नहीं} \hi{है,} \hi{लेकिन} \hi{अर्जुन} \hi{को} \hi{दही} \hi{पसंद} \hi{है।}\\
-Aman \gl{dat} curd liking \gl{neg} is but Arjun \gl{dat} curd liking is\\
-\glt `Aman does not like curd, but Arjun likes curd.'
-\ex\label{ex:fr} Aman n'aime pas le yaourt, mais Arjun aime le yaourt.
-\end{exe}
+We examine this question in Hindi and French. Our controlled prompts place a negation in one of two clauses, ask an affirmative or negative question, and present the two names in a balanced order. The languages differ in script, word order, and the realization of sentential negation: the Hindi templates use \hi{नहीं}, whereas the French templates use \emph{ne\ldots pas}. We trace the computation in Qwen3-4B and then test how far the resulting account extends to other forms, explicit worlds with multiple facts, and quantifier exceptions. The implementation and recorded results are available at \url{https://github.com/bitmap4/negation-attachment}.
 
-A model that only detects a negation gives the same answer to both versions, so
-it gets one of them wrong. To answer both, it must attach the negation to one of the two persons and keep
-that link until it selects an option. \citet{kassner2020negated} found that
-language models often give the same completion with and without a negation,
-and \citet{she2023scone} found failures on negation scope. The mechanistic
-study of \citet{zhou2026negation} explains how a model processes one negated
-phrase in English and reports late attention heads that push the affirmative
-answer. Texts with two entities are common (one patient is allergic to
-penicillin and the other is not), and to our knowledge no published study moves
-a negation between two entities while the number of negation words stays the
-same, and none does this in Hindi.
-
-Hindi and French mark negation differently. Hindi puts one particle,
-\hi{नहीं}, before the verb, and the verb is at the end of the clause. French
-puts \emph{ne} and \emph{pas} around the verb, and the object follows. If one
-mechanism serves both languages, it cannot depend on the position or the
-number of the cue tokens.
-
-We ask four questions about Qwen3-4B \citep{yang2025qwen3}. Does the model
-select the correct person in both languages (Section~\ref{sec:e1})? Which
-positions and heads carry the link from the negation to the answer
-(Section~\ref{sec:e2})? Is there a small subspace that controls the link, and
-does it transfer between the languages and between negation forms
-(Section~\ref{sec:e3})? Can an activation oracle read the link, and does its
-answer follow our interventions (Section~\ref{sec:e4})? The code, the data and
-all result files are public.\footnote{\url{https://github.com/bitmap4/negation-attachment}}
+Our main findings are:
+\begin{itemize}
+\item On the balanced base task, Qwen3-4B answers all 19,720 development and test items per language correctly. Patching supports a route through clause tokens, option tokens, and the final prediction position; selected groups of eight heads have large effects at the option and final-position stages (Sections~\ref{sec:setup}--\ref{sec:route}).
+\item Learned subspaces show a contrast across stages: a final-position answer subspace transfers across Hindi and French at 0.99--1.00 mean interchange accuracy, while clause-level subspaces for the negated mention transfer at 0.09 and 0.53 in the two directions (Section~\ref{sec:subspaces}).
+\item High base-task accuracy does not extend to every construction. On one Hindi ``nobody except X'' condition, accuracy is 12.9\% for questions about another person; rewording and word order substantially change performance (Section~\ref{sec:generalization}).
+\end{itemize}
 
 \section{Related work}
+\label{sec:related}
+\paragraph{Negation and scope.} Negated factual probes have shown that pretrained models can retain affirmative associations despite explicit negation \citep{kassner2020negated}. ScoNe uses controlled contrast sets to evaluate scope and distinguishes performance across inference and generation settings \citep{she2023scone}. Multilingual minimal-pair benchmarks extend behavioral evaluation to several languages, including French \citep{hartmann2021multilingual}; more recent multilingual NLI work finds language- and scale-dependent robustness \citep{vrabcova2025roots}. These studies motivate controlled comparisons, but their behavioral outcomes alone do not locate the representations used to select an entity. Our study holds the number of cues fixed while moving negation between clauses and intervenes on the resulting internal states. The generated tasks are narrower than natural-language inference and do not replace those benchmarks.
 
-\citet{feng2024binding} showed that models bind an entity to its attribute
-with a binding code that can be exchanged between entities, and
-\citet{gurarieh2026mixing} showed that several retrieval mechanisms act
-together when the model looks a bound entity up. Both studies use affirmative
-facts. Our task adds a polarity that must be bound to one entity. For
-localisation we use activation patching with minimal pairs
-\citep{wang2023ioi,zhang2024patching}. For the causal variables we use
-distributed alignment search (DAS), which learns a subspace such that an
-exchange of this subspace between two inputs has the effect that a
-high-level causal model predicts \citep{geiger2021abstraction,wu2023scale}.
-\citet{dumas2025tongue} patched between languages to show that concept
-representations are shared; we apply the same test to a relation between a
-negation and an entity. For the readout we use the activation oracle of
-\citet{karvonen2026oracles}, a version of the model that is trained to answer
-questions about injected activations \citep{pan2026latentqa}, and compare it
-with the same injection into the untrained model, as in Patchscopes
-\citep{ghandeharioun2024patchscopes}.
+\paragraph{Binding and causal mechanisms.} Entity-binding work has investigated representations that connect entities to attributes and how language models retrieve them \citep{feng2024binding,gurarieh2026mixing}. We study a related but distinct problem: the polarity of a fact must be associated with a person and combined with question and option information. Mechanistic work on English negation \citep{zhou2026negation} motivates our test for late affirmative-answer biases, while activation patching and circuit analysis provide tools for localizing task-relevant information \citep{wang2023ioi,zhang2024patching}. Our head and subspace results are conditional on a particular prompt and contrast; they should not be taken as a complete circuit.
 
-\section{Task and data}
-\label{sec:data}
+\paragraph{Multilingual representations and readout.} Cross-lingual patching has provided evidence for shared concept representations \citep{dumas2025tongue}. We instead test transfer of candidate directions involved in a relation and its answer mapping. Interchange interventions and distributed alignment search assess whether changes to learned subspaces have effects predicted by a higher-level model \citep{geiger2021abstraction,wu2023scale}. Finally, Patchscopes and activation-reading models offer complementary ways to describe internal states in language \citep{ghandeharioun2024patchscopes,pan2026latentqa,karvonen2026oracles}; our oracle comparison illustrates why successful or failed verbal readout must be interpreted alongside causal interventions and simpler probes.
 
-A script writes all items from templates and computes each answer from the
-scene that it writes, so no item needs a manual label. An item of the base task
-has an instruction (``Write only A or B''), a context with two clauses, a
-question and two options that are the two names. There are three sentence
-families: preference as in (\ref{ex:hi}), possession (\hi{अमन के पास घड़ी नहीं है},
-\emph{Aman n'a pas de montre}) and ability (\hi{अमन को तैरना नहीं आता},
-\emph{Aman ne sait pas nager}). The ability family is used only for testing.
-A minimal pair has the same names, object, question and option order, with the
-negation in the other clause. The negated mention, the polarity of the question
-(``who likes'' or ``who does not like'') and the option order are balanced, so
-a heuristic that uses the position or the letter gets 50\%. Affirmative
-controls have no negation and two different objects.
+\section{Task and experimental setup}
+\label{sec:setup}
+\paragraph{Base task.} Each item contains an instruction to output A or B, a two-clause context, a question, and two name options. For example, the Hindi and French versions below express the same two facts:
+\begin{quote}\small
+\hi{अमन को दही पसंद नहीं है, लेकिन अर्जुन को दही पसंद है।}\\
+\emph{Aman n'aime pas le yaourt, mais Arjun aime le yaourt.}\\
+``Aman does not like curd, but Arjun likes curd.''
+\end{quote}
+A minimal partner moves the negation to the other clause while preserving the names, predicate, question, and option order. Question polarity, negated mention, and option order are balanced. Position-only and letter-only strategies therefore attain 50\% on the balanced task. Three template families express preference, possession, and ability; the ability family is reserved for testing.
 
-The discovery split has 24,320 pairs for each language, the development split
-2,880 and the test split 6,480. The splits do not share names or objects (40
-names and 42 objects and skills in total). We find sites and train subspaces on the
-discovery split and report numbers on the test split, except where we say
-otherwise. The script also records the character span of each role: the two
-names, the body and the end of each clause, the negation cue, the question,
-and the option labels and names. Hindi and French prompts differ in length,
-and two items of one language can also differ, so we align positions by role
-and never by index.
+The generator produces labels from the constructed facts and records character spans for the names, clause bodies, negation cues, question, and options. Discovery, development, and test contain 24,320, 2,880, and 6,480 \emph{pairs} per language, respectively; names and objects do not overlap across splits. Role spans allow interventions to be aligned across different tokenizations. The development and test splits also contain 500 affirmative controls each; the 19,720 held-out items per language include those controls. Further generated sets vary negation form and scope, including temporal negation, constituent focus, quantifiers, and explicit worlds with one or two predicates. The templates and generation code are in the repository.
 
-The base task has sentential negation only. Table~\ref{tab:sets} lists the
-further sets. Six of them keep the design of the base task with another
-negation form. The other four have a yes/no question about one person. Three
-of them are explicit worlds: the context states one fact for each person and
-predicate, in every combination of polarities. With all four polarity states
-for two persons, a variable that only names ``the negated mention'' is not
-sufficient, and the model must hold a polarity for each fact.
+The extended tasks test distinct generalizations. Habitual, temporal, indefinite and lexical sets change the surface form of negation; focus sets contrast negation of a person with negation of an object. One-predicate worlds enumerate the four combinations of two people's fact polarities, whereas two-predicate worlds enumerate all sixteen combinations across four facts. Nested items wrap a queried fact in an additional negation. Quantifier items introduce three people and contrast universal and negative quantifiers, including exceptions. These tasks use separate generated templates and, for the worlds and quantifiers, yes/no rather than name options. Appendix~\ref{app:data} lists the conditions and examples.
+
+\paragraph{Model and evaluation.} The main experiments use Qwen3-4B \citep{yang2025qwen3}, with 36 layers and 32 attention heads per layer, in float16 and with thinking disabled. We compare the next-token logits for A and B, without demonstrations. We selected this model after Qwen3-1.7B fell below the project's 80\% behavioral threshold in zero-shot Hindi; two fixed examples improved the smaller model, but would introduce additional context for the intervention analysis. The principal sites and head sets were identified using discovery data; behavior and most subspace results are evaluated on held-out data, with sampling and exceptions specified below.
+
+\paragraph{Activation patching.} For a recipient $R$ and its minimal partner $P$, we replace activations at selected layers and role-aligned positions in the recipient with donor activations. Let $s$ denote the logit of the answer correct for $P$ minus that of the other answer. We report the ratio of mean logit differences:
+\begin{equation}
+ r=\frac{\operatorname{E}[s_{\mathrm{patched}}]-\operatorname{E}[s_R]}
+ {\operatorname{E}[s_P]-\operatorname{E}[s_R]}.
+\label{eq:recovery}
+\end{equation}
+A value near one indicates that the patch recovers the partner's average logit difference; it is not a probability and need not lie between zero and one. Main residual-stream maps use 96 pairs per language. Alternative donors change names and objects, question polarity, or option order to test what information a site carries. We also patch attention-head outputs in groups and use resample ablations: a selected set of outputs is replaced by those from a different item. These interventions establish effects under the chosen replacements, not a unique decomposition of the model's computation.
+
+\paragraph{Distributed alignment search.} We use interchange interventions \citep{geiger2021abstraction,wu2023scale} to test candidate variables: $W$ identifies the negated mention, $Z$ indicates whether option A names that mention, and \textbf{ANS} is the answer letter. For a learned orthonormal basis $Q$ and base and source activations $h_b,h_s$, the intervention sets $h_b\leftarrow h_b+QQ^\top(h_s-h_b)$ at the selected positions. Unless stated otherwise, the basis has eight dimensions and is trained on discovery examples. Interchange accuracy measures agreement with the answer predicted when the candidate variable takes its source value. Evaluation uses pairs that differ in that variable, so an unchanged correct base answer scores zero. Random subspaces and affirmative controls provide reference points. For cross-lingual transfer, we freeze the learned basis and evaluate it on the other language without retraining.
+
+\section{Results}
+\label{sec:results}
+\subsection{Behavior on controlled constructions}
+\label{sec:behavior}
+Qwen3-4B answers all 19,720 development and test base items per language correctly, including affirmative controls. This establishes a suitable setting for asking how the model reaches the answer, but does not imply general competence with negation. Table~\ref{tab:behavior} summarizes the broader conditions. Performance is lower for Hindi person focus, French nested negation, and especially one Hindi exception construction.
+
+\begin{table}[t]
+\small\centering
+\begin{tabularx}{\linewidth}{@{}Xrr@{}}
+\toprule
+Condition & Hindi & French \\
+\midrule
+Base task, dev and test & 100.0 & 100.0 \\
+Affirmative controls & 100.0 & 100.0 \\
+Object focus & 97.9 & 99.8 \\
+Person focus & 88.4 & 100.0 \\
+Two-predicate worlds & 99.7 & 96.2 \\
+Nested negation & 99.6 & 94.8 \\
+``Nobody except X'', other person & 12.9 & 100.0 \\
+\bottomrule
+\end{tabularx}
+\caption{Accuracy (\%) on generated conditions without demonstrations. The exception row reports the original template; Section~\ref{sec:generalization} examines alternative wordings.}
+\label{tab:behavior}
+\end{table}
+
+\subsection{The route from clauses to the answer}
+\label{sec:route}
+Patching reveals an ordered set of sites whose activations affect the answer (Figure~\ref{fig:heat}). At layer 13, replacing both clause groups recovers 0.97 of the partner logit difference in Hindi and 0.75 in French; replacing either clause alone recovers at most 0.25 and 0.19, respectively. At layer 19, replacing the option group recovers 0.91 in each language. At layer 25, replacing the final position recovers 0.91 and 0.90. The contrast between single- and two-clause patches shows that their effects are not simply additive; low recovery at one site alone is not evidence that the site contains no relevant information.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig/e2_route.pdf}
+\caption{Recovery from minimal-partner residual-stream patches across layers (96 pairs per language). Recovery normalizes the change in mean answer logit difference by the difference between partner and recipient (Equation~\ref{eq:recovery}). Both clauses excludes the negation cue; context includes it.}
+\label{fig:heat}
+\end{figure*}
+
+Donor controls help distinguish the information associated with these sites. A context donor with different names and objects still recovers 0.95 in Hindi and 0.86 in French at layer 15. When the donor's option order is also reversed, context recovery remains 1.00 and 0.95, whereas option recovery at layer 19 falls to 0.07 and 0.11. Thus, the context effect is robust to these lexical and option-order changes, while the later option effect depends strongly on the answer mapping. Further interventions on question polarity and exchanged context names support the view that information about the named person and the question reaches the options before the final answer is selected. They do not by themselves prove a single serial path or specify every computation along it.
+
+The individual donor comparisons give a more detailed ordering. With the context names exchanged, an option-group patch at layer 14 recovers 0.80 / 0.98 (Hindi / French). Changing question polarity gives recovery of 0.54 / 0.71 at the question tokens at layer 15, and patching the question and options together recovers 0.94 in both languages at layer 17. With the minimal partner, option A alone at layer 19 recovers 0.36 / 0.39, less than the two-option group. These comparisons support the presence of person, question and answer-relevant information at different sites, but their differing donors are not independent measurements of a single variable.
+
+Groups of attention heads contribute to the option and final-position effects (Table~\ref{tab:heads}). Heads were ranked on 32 discovery pairs and first evaluated on 32 other discovery pairs; the selected sets were then evaluated on 64 test pairs. The top eight option-stage heads recover 0.89 in Hindi and 0.79 in French on test, and seven head identities overlap across the two languages. Resampling these outputs from items with the opposite negated mention reduces accuracy to 0.00 and 0.13, respectively; random sets of eight heads do not have this effect. The analogous final-position set also has a strong patching effect. These results support a concentrated causal contribution from the selected groups in this task; they do not show that each head has a separate, interpretable role.
+
+The intermediate formatting tokens show a less concentrated effect: the top eight heads in layers 19--24 recover 0.49 / 0.58 on test, whereas the corresponding resampling accuracies are 0.60 / 0.57. In an attention-pattern analysis, L13H13 assigns 0.98 versus 0.01 of its attention to the option person's clause versus the other clause in Hindi (0.89 versus 0.04 in French). The pattern is consistent with person-specific lookup, although attention weights alone do not establish that the head transmits polarity. The full head-set controls and shared identities are in Appendix~\ref{app:heads}.
+
+\begin{table}[t]
+\small\centering
+\begin{tabularx}{\linewidth}{@{}Xcc@{}}
+\toprule
+ & Options & Final position \\
+Layers & 16--19 & 23--26 \\
+\midrule
+Top 8: partner recovery & .89 / .79 & .85 / .85 \\
+Random 8: partner recovery & .00 / .00 & $-$.01 / $-$.01 \\
+Top 8: resampled accuracy & .00 / .13 & .00 / .00 \\
+Random 8: resampled accuracy & 1.00 / 1.00 & 1.00 / 1.00 \\
+\bottomrule
+\end{tabularx}
+\caption{Head-set interventions on 64 held-out pairs, Hindi / French. Resampling uses an item with the opposite negated mention, matched on family, question polarity, and option order. Random-head results average five draws.}
+\label{tab:heads}
+\end{table}
+
+A separate mean-ablation analysis tested whether late heads favor the affirmative person, as suggested by an English negation study \citep{zhou2026negation}. Across the 512 heads in layers 20--35, no individual head showed the predicted opposite effects on affirmative and negative questions. The effects across the two question types correlate at 0.99 in both languages. This negative result concerns this intervention and task; it does not rule out such heads in other models or prompts.
+
+\subsection{Candidate variables and cross-lingual transfer}
+\label{sec:subspaces}
+The subspace interventions are consistent with a change in the information most effective at successive sites (Table~\ref{tab:das}). For clause tokens at layer 14, the $W$ intervention attains mean interchange accuracy of 0.88 in Hindi and 0.82 in French across three seeds. At the final position in layer 27, the answer-letter intervention attains 1.00 in both languages. Random subspaces score 0.00 at the tested sites. Some alternative variables also have substantial effects at option tokens, so the results should not be read as proof that each site stores exactly one variable.
+
+\begin{table}[t]
+\small\centering
+\begin{tabularx}{\linewidth}{@{}Xcc@{}}
+\toprule
+Site and candidate & Within language & Cross-language \\
+\midrule
+Clauses L14, $W$ & .88 / .82 & .09 / .53 \\
+Options L18, $Z$ & .65 / .83 & .52 / .38 \\
+Options L19, \textbf{ANS} & .93 / .98 & .96 / .57 \\
+Final L27, \textbf{ANS} & 1.00 / 1.00 & 1.00 / .99 \\
+\bottomrule
+\end{tabularx}
+\caption{Interchange accuracy, averaged over three seeds. Within-language columns are Hindi / French; cross-language columns are Hindi-trained on French / French-trained on Hindi. Each test uses a frozen eight-dimensional basis and pairs differing in the target variable.}
+\label{tab:das}
+\end{table}
+
+Transfer is much stronger at the final answer position than at the clause site. The Hindi-trained $W$ subspace achieves 0.09 on French, and the French-trained one achieves 0.53 on Hindi, compared with 1.00 and 0.99 for the final answer subspaces. This asymmetry is not proof that clause representations are wholly language-specific: the learned subspaces are non-unique, token alignment differs between languages, and a jointly trained subspace achieves mean $W$ accuracy of 0.75 on Hindi and 0.63 on French over two seeds. Rather, the comparison indicates that the independently learned clause directions transfer less reliably under this procedure than the answer directions.
+
+Cross-language sources further separate reading a direction from using it in a base. For $W$ at layer 14, a French-trained basis with a French base and Hindi source reaches 0.83 mean interchange accuracy, compared with 0.38 for the reverse arrangement using the Hindi-trained basis; these are means over three seeds. The jointly trained basis reaches 0.92 with a French base and Hindi source and 0.57 in the reverse direction, averaged over two seeds. These asymmetric interventions suggest partial alignment, but do not show that either language's entire representation is contained in the other's. Appendix~\ref{app:das} reports seed ranges and the corresponding within-language controls.
+
+A dimensionality comparison also distinguishes these sites. A one-dimensional answer subspace at the final position attains 1.00 interchange accuracy in both languages; at the options it attains 0.81 / 0.96. For $W$ in the clauses, one dimension gives 0.59 / 0.23 and four give 0.72 / 0.74. These are particular learned subspaces, not estimates of the intrinsic dimension of a unique representation.
+
+\subsection{Beyond a single negated mention}
+\label{sec:generalization}
+The base task always has one negated mention, so $W$ alone can identify both polarities. In explicit worlds we instead vary the polarity of each fact. With two people and two predicates, patching a donor that differs in the queried fact affects the answer, while changes to a different fact have effects below 0.04 across the tested layers and positions (64 pairs per language). A single learned basis applied at fact-token positions also changes target answers while leaving answers about other facts correct at rates of at least 0.96 in the reported runs. Target accuracy varies substantially across seeds: for Hindi two-predicate worlds it is 0.99 and 0.65 for same-slot interventions. This selectivity supports a fact-sensitive account, but the seed variation limits the precision of the claim.
+
+The intervention exchanges one learned subspace at the fact tokens after the person's name. For one-predicate worlds, same-slot / different-slot target accuracies are 0.91 / 0.87 in Hindi and 0.74 / 0.85 in French. For two-predicate worlds, the corresponding two-seed means are 0.82 / 0.79 and 0.62 / 0.60. Other-fact accuracy remains high in these tests. Thus, the effect is not restricted to exchanging the same input position, but incomplete and seed-sensitive target control precludes claiming a perfectly localized fact variable.
+
+\paragraph{Other forms and nested negation.} Late option and final-position patches remain effective across the six tested alternative form sets: layer-20 option recovery ranges from 0.79 to 0.91, and layer-26 final-position recovery from 0.87 to 0.93. In contrast, clause-group recovery at layer 14 varies from 0.04 to 0.98 across forms and languages. This contrast suggests that the tested late answer route is more stable than the early localization, although recovery can vary with donor and token alignment.
+
+Frozen base-task subspaces show a similar qualification (Figure~\ref{fig:forms}). The clause-level $W$ subspace transfers to habitual negation and ``never'' at 0.63--0.95; for ``no longer'' it scores 0.90 in Hindi but 0.03 in French, and it fails on the tested lexical-negation condition in both. At the option site, answer-subspace transfer is 0.80--0.99 for forms other than focus; the final-position answer subspace transfers more broadly. The Hindi ``no longer'' template retains \hi{नहीं}, while the French cue changes from \emph{pas} to \emph{plus}; this surface difference is a possible explanation, not an isolated causal factor.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig/e3_forms_readable.pdf}
+\caption{Transfer to other negation forms of eight-dimensional subspaces learned on the base task. Cells give interchange accuracy by language, site, and candidate variable; n/a indicates that the necessary role was unavailable. These are single-seed evaluations and should be interpreted alongside the seed variation for the base task.}
+\label{fig:forms}
+\end{figure*}
+
+For nested negation, we compare causal models that interchange either the inner fact's polarity or its composed polarity. On examples where these models predict different answers, the inner-polarity model fits better at Hindi layers 11 and 13, while the composed-polarity model fits better at French layer 13. Both outcomes recur across two seeds, with variable strengths (Appendix~\ref{app:worlds}); they characterize particular sites, not the full computation of nested scope.
+
+The exception results expose a behavioral limit that perfect base accuracy conceals. For the Hindi wording corresponding to ``nobody except X likes curd,'' the model frequently answers that a non-exception person likes it. In a 500-item-per-wording follow-up analysis, accuracy for other people varies from 14\% to 67\% across three Hindi exception markers, and rises to 100\% for one marker when the exception follows the negative sentence. Equivalent statements using ``only'' or two sentences also reach 100\%. In French, moving \emph{sauf X} before \emph{personne} reduces accuracy on questions about X from 98\% to 46\%. Word order and wording are associated with the errors (Table~\ref{tab:except}), but these comparisons do not isolate their causal mechanism; the conditions also change the surface form and may vary in naturalness.
+
+The converse quantifier exposes another failure. For Hindi ``everyone except X'' with \hi{के सिवा}, accuracy on X is 3\% when the exception comes first and 13\% when it follows, even though accuracy on other people is 96\% and 88\%. French reaches approximately 100\% for this condition in either order. The full 500-item wording comparisons, including counts by question target, are in Appendix~\ref{app:exceptions}.
+
+\paragraph{Patching quantifiers and exceptions.} We also intervene on the successful quantifier conditions, contrasting matched ``everyone'' and ``nobody'' sentences (24 pairs per condition and language). The question tokens recover 0.47 / 0.44 at layer 16, the option group recovers 0.95 / 0.94 at layer 20, and the final position becomes effective from layer 26. With an exception present in both donor and recipient, French \emph{sauf} follows the quantifier and its token recovers 0.85--0.94 at layers 12--14. The Hindi exception phrase precedes the quantifier and its patch has approximately zero recovery, while the whole sentence recovers 0.66--0.86 for questions about the exception. The positional contrast is compatible with the autoregressive ordering of these cues; differences in wording, tokenization, and the patch site prevent a causal attribution to word order alone.
+
+\begin{table}[t]
+\small\centering
+\begin{tabularx}{\linewidth}{@{}Xrr@{}}
+\toprule
+``Nobody except X'' wording & X & Other \\
+\midrule
+Hindi: X \hi{को छोड़कर}, before & 95 & 14 \\
+Hindi: X \hi{के अलावा}, before & 89 & 67 \\
+Hindi: X \hi{के सिवा}, before & 98 & 57 \\
+Hindi: X \hi{के सिवा}, after & 100 & 100 \\
+Hindi: ``only X'' & 100 & 100 \\
+French: \emph{sauf X}, after & 98 & 100 \\
+French: \emph{sauf X}, before & 46 & 100 \\
+\bottomrule
+\end{tabularx}
+\caption{Accuracy (\%) on 500 items per wording, split between questions about the exception (252) and another person (248); columns give accuracy by question target. ``Before'' and ``after'' indicate the position of the exception phrase relative to the quantified clause.}
+\label{tab:except}
+\end{table}
+
+\subsection{What an activation oracle can read}
+\label{sec:oracle}
+We query a released Qwen3-4B activation oracle \citep{karvonen2026oracles} with English yes/no questions about activations from 300 test items per language. On clause-one tokens at layer 18, it answers whether the person has the relevant property with 0.99 / 1.00 accuracy (Hindi / French). On the option-A name at the same layer, accuracy is 0.66 / 0.57; on the full context, the question of whether the first mention is negated yields 0.50 / 0.50. A linear probe trained on a random half of the same sampled activations reaches 1.00 on the corresponding held-out half. The comparison shows that information can be linearly recoverable without being reliably elicited by this oracle and wording; the two methods differ in training and evaluation and are not directly equivalent (Table~\ref{tab:oracle}).
+
+\begin{table}[t]
+\small\centering
+\begin{tabularx}{\linewidth}{@{}Xcc@{}}
+\toprule
+Question and activation & Oracle & Adapter off \\
+\midrule
+Person's polarity, clause 1, L18 & .99 / 1.00 & .57 / .64 \\
+First mention negated, context, L18 & .50 / .50 & .50 / .50 \\
+Person's polarity, option A, L18 & .66 / .57 & .42 / .43 \\
+Answer is A, final position, L27 & .95 / .96 & .55 / .54 \\
+\bottomrule
+\end{tabularx}
+\caption{Oracle accuracy on 300 sampled test items per language (Hindi / French), compared with activation injection with the adapter disabled. A linear probe trained and evaluated on separate random halves of the same samples reaches 1.00 in each row.}
+\label{tab:oracle}
+\end{table}
+
+At layer 27 the oracle predicts whether A is correct at 0.95 / 0.96 accuracy. After clause-group patching at layer 13, it agrees with the patched model's answer on 0.94 / 0.93 of 96 pairs. Agreement falls to 0.76 / 0.92 after an option-group patch. These interventions show that the readout often tracks changes in the model's answer, while also exposing a failure mode for one patch and language.
+
+Agreement alone can be misleading when the intervention leaves the model's answer unchanged. For the two-clause patch, the model's answer changes on 100\% / 73\% of the pairs; for the option patch it changes on 98\% / 95\%. Single-clause patches change at most 10\%, despite high oracle--model agreement. Appendix~\ref{app:oracle} reports both quantities for each condition, so that agreement is not mistaken for an intervention success rate.
+
+\section{Discussion and conclusion}
+\label{sec:discussion}
+The central contrast is between the early and late stages of the tested computation. Clause-group patches carry information that changes the answer even with different names and objects, but independently learned clause subspaces transfer unevenly between languages. At the final position, answer-letter subspaces transfer nearly perfectly in both directions. Together with the overlap in influential head sets, these findings are consistent with some shared answer-selection machinery following more variable processing of the linguistic input. They do not establish that all languages or all negation constructions converge on the same mechanism.
+
+The fact-level experiments and exception errors qualify that account. Interventions in explicit worlds can selectively affect a queried fact, but their strength varies across optimization seeds. The exception tests show that a model can perform perfectly on simple balanced pairs while failing on a particular quantifier construction. A useful next step is to validate the templates with fluent speakers and test whether the same patterns persist in naturalistic text and additional model families.
+
+\section*{Limitations}
+The main causal analysis concerns one model, two languages, and synthetic templates; it does not establish general behavior in other models or natural settings. The two languages also differ in script, tokenization, and word order, preventing us from attributing transfer differences to any one linguistic feature. Not all extended templates have been checked by fluent speakers, and some exception word orders may differ in naturalness. Head sets were selected using small discovery samples, and many analyses use 24--96 intervention pairs. Main subspace results use three seeds; several extended analyses use only one or two. Activation patching can introduce out-of-distribution states, and low recovery from one position does not exclude redundant or distributed information. Finally, the oracle and linear probe use different training procedures, so their accuracies should not be treated as a controlled comparison of intrinsic representational content.
+
+\bibliography{refs}
+
+\clearpage
+\appendix
+\section{Task inventory and reproducibility}
+\label{app:data}
+Table~\ref{tab:taskinventory} summarizes the constructed task families. In the base task, the discovery, development and test files contain 48,640, 5,760 and 12,960 negative examples, respectively, plus 2,000, 500 and 500 affirmative controls per language. The split is by names and objects; the ability family occurs only in test. Base-task partner interventions use preference and possession examples, as the patching sampler explicitly restricts these families. The extended sets vary the wording and answer format, so a high base-task score alone does not validate every intervention condition.
 
 \begin{table}[t]
 \small
 \begin{tabularx}{\linewidth}{@{}lX@{}}
 \toprule
-Set & Content (French example) \\
+Set & Construction \\
 \midrule
-hab & Habitual verbs: \emph{Varun ne joue pas aux échecs.} \\
-never & \emph{Varun ne joue jamais aux échecs.} \\
-no longer & \emph{Maintenant, Suresh ne joue plus aux échecs}, after a sentence about the past. \\
-nothing & \emph{Suresh ne mange rien, mais Priya mange du riz.} \\
-lexical & \emph{malheureux} against \emph{n'est pas heureux}, in the context and in the question. \\
-focus & \emph{Karan aime le cricket, pas le riz}; the negation targets an object or a person. \\
-\midrule
-quant & Three persons; \emph{Tout le monde / Personne}, with or without \emph{sauf X}; ``not everyone'' with facts. \\
-w1 & Two persons, one predicate, four polarity states. \\
-nest & w1 with \emph{Il n'est pas vrai que} around the queried fact. \\
-w2 & Two persons, two predicates, sixteen polarity states. \\
+Habitual & Negated and affirmative habitual activities \\
+Never & \emph{ne ... jamais} / Hindi ``never'' with negation \\
+No longer & Past context followed by current negative state \\
+Nothing & Negative indefinite contrasted with an affirmative fact \\
+Lexical & Lexically negative versus explicitly negated predicates \\
+Focus & Negation contrasts two objects or two people \\
+Quantifiers & Everyone or nobody, with or without an exception; ``not everyone'' \\
+One-predicate worlds & Two people, four polarity configurations \\
+Two-predicate worlds & Two people and two predicates, sixteen configurations \\
+Nested & An outer negation around a queried fact \\
 \bottomrule
 \end{tabularx}
-\caption{The further sets. The upper sets have two names (or two objects) as options. The lower sets have yes/no options. Each set has 1,600 to 2,000 test items for each language, with names and objects that the discovery split does not use.}
-\label{tab:sets}
+\caption{Extended task families. The first six use name or object answer options; the remaining sets use yes/no options. Examples and generator details are in \texttt{data/templates.md}.}
+\label{tab:taskinventory}
 \end{table}
 
-\section{Behaviour}
-\label{sec:e1}
+All experiments use the model and data files named in the repository. In the default base-task DAS script, the same basis is applied at each aligned token in a selected role group; bases are optimized with Adam and binary cross-entropy on the A/B logit difference. Learning rates, batch sizes, steps and evaluation sample counts vary across runs and seeds, and the executed configurations are recorded in \texttt{jobs/cmds/} and result-file metadata. The primary seed checks use 200 evaluation pairs per seed for the additional seed runs; runs should be compared using their stored arguments rather than assuming identical optimization budgets. For full-model inference we used one RTX 2080 Ti. The released oracle adapter reads layers 9, 18 and 27; its activations are injected into the adapter's input at placeholders, and answers are scored using Yes/No logits.
 
-We planned the study for Qwen3-1.7B, with the rule that mechanistic work
-starts only at 80\% accuracy or more. With no examples in the prompt,
-Qwen3-1.7B gets 96 to 100\% in French and 49 to 69\% in Hindi, by family. Two fixed
-examples raise Hindi to 99\%, but examples add text that the model can copy
-from. Qwen3-4B answers all 19,720 development and test items of each
-language correctly with no examples, so we use it for all experiments. It has
-36 layers and 32 heads in each layer. We run it in 16-bit floats with thinking
-disabled, and read the logits of ``A'' and ``B'' at the last position.
+\paragraph{Smaller model.} Qwen3-1.7B scores 49--69\% in zero-shot Hindi across the base families, versus 96--100\% in French. Two fixed examples raise its Hindi result to approximately 99\%. With zero-shot French, residual patching shows a qualitatively similar sequence at earlier layers: context through layer 11 (0.74 recovery), options at layers 14--15 (0.97), and the final position from layer 22. This is a limited comparison, not a replication of every 4B experiment.
+
+\section{Head and donor controls}
+\label{app:heads}
+Table~\ref{tab:appendixheads} includes the intermediate label/template destination omitted from the condensed main-text table. All sets contain eight heads and were chosen on discovery data. On the 32-pair discovery evaluation, the option-stage top eight recover 0.90 / 0.88 while the remaining 120 heads in the same four layers recover 0.03 / 0.05. The best single head recovers 0.02 / 0.04. Joint effects and redundancy make these quantities non-additive.
 
 \begin{table}[t]
-\small
-\begin{tabularx}{\linewidth}{@{}Xrr@{}}
-\toprule
-Set & Hindi & French \\
-\midrule
-Base task, development and test & 100.0 & 100.0 \\
-Affirmative controls & 100.0 & 100.0 \\
-hab, never, no longer, nothing, lexical & 100.0 & 100.0 \\
-Focus on the object & 97.9 & 99.8 \\
-Focus on the person & 88.4 & 100.0 \\
-Worlds, one predicate & 100.0 & 100.0 \\
-Worlds, two predicates & 99.7 & 96.2 \\
-Nested negation & 99.6 & 94.8 \\
-Quantifiers, seven conditions & 97.5 & 99.5 \\
-``Nobody except X'', other person & 12.9 & 100.0 \\
-\bottomrule
-\end{tabularx}
-\caption{Accuracy of Qwen3-4B in percent, with no examples in the prompt.}
-\label{tab:e1}
-\end{table}
-
-Table~\ref{tab:e1} gives the accuracy on all sets. The model is at or near
-100\% on every negation form. It is weaker on nested negation in French and on
-person focus in Hindi. One condition fails: for the Hindi sentence
-\hi{सीता को छोड़कर किसी को दही पसंद नहीं है} (``nobody except Sita likes curd''),
-the model says that the other two persons like curd. We return to this
-condition in Section~\ref{sec:quant}.
-
-\section{The route of the attachment}
-\label{sec:e2}
-
-\subsection{Method}
-
-For a recipient item $R$ and its minimal partner $P$, we run the model on a
-donor $D$, store its activations, and run $R$ with some activations replaced
-by those of $D$ at tokens with the same role. Let $s$ be the logit difference
-between the letter that is correct for $P$ and the other letter. The recovery
-of a patch is
-\[
-r = \frac{s_{\text{patched}} - s_R}{s_P - s_R}.
-\]
-$R$ and $P$ have the same words and one negation each, so a recovery near 1
-shows that the patched activations hold the attachment. In the main
-experiment $D = P$. We patch the residual stream at each layer for each role
-and for groups of roles, on 96 pairs for each language. Before the experiments
-we had three hypotheses. The model reads each name before the negation of its
-clause, so the name token cannot hold the polarity; a later position must.
-In H1 the option names look up the polarity of their person. In H2 a position
-in the context holds a pointer that the last position reads directly. In H3
-late heads push the affirmative person, as \citet{zhou2026negation} report for
-English, and the correct answer on a negative question must overcome them.
-
-\subsection{Stages}
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.80\textwidth]{fig/e2_heat.png}
-\caption{Recovery when the residual stream of the recipient is replaced by that of its minimal partner, at one role (left part of each panel) or at a group of roles (right part). ``Both clauses'' is all tokens of the two clauses except the negation cue, and ``context'' adds the cue.}
-\label{fig:heat}
-\end{figure*}
-
-Figure~\ref{fig:heat} shows the same order of stages in both languages, and
-Table~\ref{tab:stages} gives the numbers. Up to layer 15 the attachment is in the context, and it is spread over
-the two clauses: a patch of both clauses at layer 13 recovers 0.97 in Hindi
-and 0.75 in French, and one clause alone recovers at most 0.25 and 0.19. This
-patch does not include the cue token. The cue token alone recovers 0.01 or
-less at every layer, so it holds no pointer to its person; with the cue added
-to both clauses the recovery at layer 15 is 1.00 and 0.95. From layer 18 the context has no effect and
-the option tokens recover 0.91 in both languages. Between layers 20 and 24 a
-part of the effect is on the label ``B:'' and the tokens of the chat template,
-and from layer 25 the last position recovers 0.90. This is the order that H1
-predicts. H2 predicts an effect of the context up to late layers, which we do
-not see.
-
-\begin{table}[t]
-\small
-\begin{tabularx}{\linewidth}{@{}Xlc@{}}
-\toprule
-Patched tokens & Layer & Recovery \\
-\midrule
-Both clauses & 13 & 0.97 / 0.75 \\
-One clause & 13 & $\leq$0.25 / $\leq$0.19 \\
-Both options & 19 & 0.91 / 0.91 \\
-Option A only & 19 & 0.36 / 0.39 \\
-Label ``B:'' & 20-24 & 0.14-0.34 \\
-Last position & 25 & 0.91 / 0.90 \\
-\bottomrule
-\end{tabularx}
-\caption{Recovery for a donor that is the minimal partner (Hindi / French).}
-\label{tab:stages}
-\end{table}
-
-Four other donors show what each stage holds (Figure~\ref{fig:flow}). When the
-donor has other names and another object, the patch of the context at layer
-15 still recovers 0.95 and 0.86, so the context code does not depend on the
-names or the object. When the donor is the partner with the option order
-changed, the context patch still recovers 1.00 and 0.95, and the option patch
-at layer 19 recovers only 0.07 and 0.11: from layer 19 the option tokens hold
-which letter is correct, and before that the context holds which mention is
-negated. Two further inputs arrive at the options on the way. With the two names
-exchanged in the context of the donor, the option tokens recover 0.80 and 0.98
-at layer 14, so by this layer each option name knows which mention it names.
-With the other question polarity in the donor, the question tokens recover
-0.54 and 0.71 at layer 15, and question and options together 0.94 at layer
-17. The options therefore receive the identity of their person first, the
-polarity of the question next, and the attachment last.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.86\textwidth]{fig/e2_flow.png}
-\caption{Recovery by layer for four groups of tokens and five donors.}
-\label{fig:flow}
-\end{figure*}
-
-\subsection{Heads}
-
-No single attention layer or MLP recovers much alone, except the attention of
-layer 18 in Hindi (0.68) and the attention of layer 24 at the last position
-(0.66). For each step we ranked the heads of the relevant layers by the
-recovery of a patch of one head at the destination tokens, on 32 pairs, and
-tested sets of heads on 32 other pairs. Table~\ref{tab:heads} shows that eight
-of the 128 heads in layers 16 to 19 move the attachment to the option tokens,
-and eight of the 128 heads in layers 23 to 26 move it to the last position.
-The remaining 120 heads together recover almost nothing. The best single head
-recovers 0.04 at the options, so the heads act as a group. The step to ``B:''
-is less concentrated: the top eight heads recover 0.53 and 0.57, and 64 heads
-are necessary for 0.74 and 0.95.
-
-\begin{table}[t]
-\small
+\small\centering
 \begin{tabularx}{\linewidth}{@{}Xccc@{}}
 \toprule
- & Options & ``B:'' & Last \\
-Layers & 16-19 & 19-24 & 23-26 \\
+ & Options & Label & Final \\
+Layers & 16--19 & 19--24 & 23--26 \\
 \midrule
-\multicolumn{4}{@{}l}{\emph{Patch from the partner (recovery)}} \\
-Top 8, discovery & .90 / .88 & .53 / .57 & .83 / .82 \\
-All other heads & .03 / .05 & .02 / .03 & $-$.07 / $-$.05 \\
-Top 8, test & .89 / .79 & .49 / .58 & .85 / .85 \\
-8 random heads & .00 / .00 & .00 / .00 & $-$.01 / $-$.01 \\
-\midrule
-\multicolumn{4}{@{}l}{\emph{Resample ablation (accuracy, other negated mention)}} \\
-Top 8 & .00 / .13 & .60 / .57 & .00 / .00 \\
-8 random heads & 1.00 / 1.00 & 1.00 / 1.00 & 1.00 / 1.00 \\
+Partner patch: top 8 & .89 / .79 & .49 / .58 & .85 / .85 \\
+Partner patch: random 8 & .00 / .00 & .00 / .00 & $-$.01 / $-$.01 \\
+Resample: top 8 & .00 / .13 & .60 / .57 & .00 / .00 \\
+Resample: random 8 & 1.00 / 1.00 & 1.00 / 1.00 & 1.00 / 1.00 \\
 \bottomrule
 \end{tabularx}
-\caption{Sets of heads for the three steps (Hindi / French). The random sets are five draws of eight heads from the same layers; we give the mean.}
-\label{tab:heads}
+\caption{Test-split head controls (64 pairs; Hindi / French). Rows report recovery for partner patches and accuracy for resampling from a different item with the opposite negated mention. Random results average five draws. The label group includes ``B:'' and chat-template tokens.}
+\label{tab:appendixheads}
 \end{table}
 
-The top sets are nearly the same in the two languages. Seven of the eight
-heads for the options are shared (L16H17, L17H4, L18H8, L18H11, L18H15,
-L19H10, L19H31), seven of the eight for ``B:'', and six of the eight for the
-last position (among them L24H28 to L24H31). We repeated the test on the test split, which has other
-names and objects than the split on which we ranked the heads. The top eight heads keep
-their effect, and eight random heads of the same layers recover 0.00
-(Table~\ref{tab:heads}). For necessity we used a resample ablation: the
-outputs of the heads at the destination tokens come from a random item with
-the same family, question polarity and option order, and with other names and
-another object. When the random item has the same negated mention as the
-recipient, the logit difference does not change. When it has the other
-negated mention, the answer of the model follows the random item: for the
-heads of the option step the accuracy falls from 1.00 to 0.00 in Hindi and
-0.13 in French, and for the heads of the last step to 0.00 in both. The same
-ablation of eight random heads changes nothing. The model therefore has no
-second path that corrects the attachment when these heads carry the wrong
-value.
+The seven heads common to the Hindi and French option-stage top-eight sets are L16H17, L17H4, L18H8, L18H11, L18H15, L19H10 and L19H31; six of the eight final-position heads overlap. Resampling the selected sets from another item with the \emph{same} negated mention retains 0.99--1.00 of the clean logit difference. For late mean ablations, the largest difference between effects on affirmative and negative questions is 0.51 in Hindi and 0.61 in French. L34H29 opposes the correct answer under both question polarities, so its effect alone is not evidence of an affirmative-person shortcut.
 
-The attention patterns agree with a lookup. From an option name, head L13H13
-gives 0.98 of its attention on the context to the clause of the same person
-and 0.01 to the other clause in Hindi (0.89 and 0.04 in French). L11H10 and
-L19H24 attend to the name in that clause, and L13H13, L13H14, L15H13 and
-L18H15 attend to the predicate.
-
-\subsection{Shortcut heads}
-
-H3 predicts late heads that push the affirmative person. The removal of such
-a head helps on negative questions and hurts on affirmative questions. We
-replaced the output of each of the 512 heads in layers 20 to 35 at the last
-position with its mean over the items, one head at a time, and measured the
-change of the logit difference toward the correct letter for each question
-polarity. No head has the predicted pattern. The effects on the two
-polarities are nearly equal: their correlation over the heads is 0.99 in both
-languages, and the largest difference between the polarities is 0.6, on a
-logit difference of 26 to 28. Some heads do work against the correct answer.
-Without L34H29 the logit difference rises by 2.6 in Hindi and 2.0 in French,
-and without the eight strongest heads of this kind (ranked on one half of the
-items, removed on the other half) it rises by 8.7 and 7.2. They are the same heads in the two languages
-(L34H29, L35H24, L35H27, L25H14, L25H30), and they oppose the correct letter
-on affirmative and negative questions alike. They lower the confidence of the
-model and hold no preference for the affirmative person.
-
-\subsection{Other forms and a smaller model}
-
-We repeated the residual patching on the six sets with other negation forms.
-The late stages are the same for all of them: the options recover 0.79 to
-0.91 at layer 20 and the last position 0.87 to 0.93 at layer 26. The context
-stage differs: at layer 14 the recovery of both clauses is between 0.04 and
-0.98, by form and language. In the explicit worlds, where the options are
-``yes'' and ``no'', the route has one more stage: after the context (to layer
-15) the question tokens, which name the queried person, hold a part of the
-effect at layers 17 to 19 (0.38 to 0.60), and the option tokens follow at
-layers 20 to 24 (0.84 to 0.91). The option stage therefore does not depend on
-options that are names. In French, Qwen3-1.7B has the same
-order of stages at smaller depth: the context to layer 11 (0.74), the options
-at layers 14 and 15 (0.97), ``B:'' at layers 16 to 21, and the last position
-from layer 22.
-
-\section{Causal variables}
-\label{sec:e3}
-
-\subsection{Three variables on the route}
-
-With patching we find where the attachment is, and with DAS we test what is
-stored there. We define three binary variables of an item. $W$ is the negated mention (first or
-second). $Z$ says if option A names the negated person; it combines $W$ with
-the option order. \textsc{ans} is the correct letter; it combines $Z$ with the
-question polarity. For a site (a layer and a set of tokens) and a variable we
-learn an orthonormal basis $Q$ with 8 columns in the 2,560 dimensions of the
-residual stream. The interchange
-intervention replaces the component of the base activation in the span of $Q$
-with that of a source item,
-$h \leftarrow h + QQ^{\top}(h_{\text{source}} - h)$, and the label is the
-answer of the base item when the variable takes the value of the source. We
-train $Q$ on the discovery split and report the interchange accuracy on test
-pairs in which the variable differs, so that an intervention with no effect
-scores 0.
+\section{Subspace transfer and seed variation}
+\label{app:das}
+Table~\ref{tab:seedrange} reports the range behind the three-seed means in the main text. The range at the intermediate option site is wider than at the final position. Applying a frozen basis trained in one language to both base and source examples in another tests a different condition from holding the base language fixed while changing the source language. We report both rather than treating them as interchangeable evidence of cross-language alignment.
 
 \begin{table}[t]
-\small
-\begin{tabularx}{\linewidth}{@{}Xccc@{}}
-\toprule
-Site & $W$ & $Z$ & \textsc{ans} \\
-\midrule
-Clause tokens, L14 & \textbf{.88 / .82} & .17 / .03 & .33 / .09 \\
-Option names, L18 & .07 / .25 & \textbf{.65 / .83} & .23 / .66 \\
-Option names, L19 & .12 / .34 & .60 / .56 & \textbf{.93 / .98} \\
-Last position, L27 & .01 / .10 & .38 / .45 & \textbf{1.00 / 1.00} \\
-\bottomrule
-\end{tabularx}
-\caption{Interchange accuracy of 8-dimensional subspaces, trained and tested in the same language (Hindi / French). The clause tokens are the body and the end of each clause, without the names and the cue. Cells in bold are the mean of three seeds, the other cells have one seed. A random subspace of the same size scores 0.00 in every cell.}
-\label{tab:das}
-\end{table}
-
-Each site holds one variable best (Table~\ref{tab:das}). The clauses hold $W$,
-the option names hold $Z$ at layer 18 and the letter one layer later, and the
-last position holds the letter. The step from $Z$ to the letter between layers
-18 and 19 is the point where the question polarity, which arrived at the
-options by layer 17, is applied. Affirmative controls keep their answer under
-the $W$ and $Z$ interventions at the sites in bold (0.99 to 1.00). The letter
-needs one dimension: a 1-dimensional subspace scores 1.00 at the last
-position and 0.81 and 0.96 at the options. $W$ in the context needs more: 0.59
-and 0.23 with one dimension, 0.72 and 0.74 with four. Over the three seeds the scores in bold
-stay within 0.06 of the mean, except $Z$ at the options (0.55 to 0.75 in
-Hindi, 0.71 to 0.90 in French).
-
-\subsection{Transfer between the languages}
-
-\begin{table}[t]
-\small
+\small\centering
 \begin{tabularx}{\linewidth}{@{}Xcc@{}}
 \toprule
-Subspace & Hi to Fr & Fr to Hi \\
+Site / variable & Hi $\rightarrow$ Fr & Fr $\rightarrow$ Hi \\
 \midrule
-$W$, clause tokens, L14 & 0.09 & 0.53 \\
-$Z$, option names, L18 & 0.52 & 0.38 \\
-\textsc{ans}, option names, L19 & 0.96 & 0.57 \\
-\textsc{ans}, last position, L27 & 1.00 & 0.99 \\
+Clauses L14, $W$ & .05--.11 & .49--.56 \\
+Options L18, $Z$ & .37--.61 & .33--.41 \\
+Options L19, \textbf{ANS} & .90--.99 & .45--.77 \\
+Final L27, \textbf{ANS} & 1.00 & .97--1.00 \\
 \bottomrule
 \end{tabularx}
-\caption{Interchange accuracy when the subspace is trained on one language and tested on the other (mean of three seeds).}
-\label{tab:transfer}
+\caption{Ranges of cross-language interchange accuracy over three seeds. The arrow indicates the training language followed by the language of both test activations.}
+\label{tab:seedrange}
 \end{table}
 
-We applied each subspace to the other language without training
-(Table~\ref{tab:transfer}). The letter subspace at the last position transfers
-fully in both directions. The $W$ subspace in the context does not: the
-Hindi subspace scores 0.09 on French, and the French subspace 0.53 on Hindi.
-Pairs with one item of each language give more detail. With the French
-subspace, a Hindi source changes the answer of a French base in 0.83 of the
-pairs, as often as a French source does (0.82), so the Hindi clause tokens
-hold the attachment in the directions that French uses. The same subspace
-controls a Hindi base in only half of the pairs. With the Hindi subspace, a
-French source changes a Hindi base in 0.38 of the pairs. A subspace trained on both languages at once scores 0.75 on Hindi and
-0.63 on French (mean of two seeds), between the monolingual scores and the
-transfer scores. Directions that serve both languages therefore exist, and
-training on Hindi alone does not find them. With this joint subspace a Hindi
-source changes a French base in 0.92 of the pairs, and a French source
-changes a Hindi base in 0.57. The French clause tokens thus hold a weaker
-code than the Hindi ones, which agrees with the patching result that a part
-of the French attachment is on the cue tokens, outside this site. The shared
-part of the mechanism is partial in the context, larger at the options and
-complete at the last position.
-
-\subsection{Other negation forms}
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.88\textwidth]{fig/e3_forms.png}
-\caption{Interchange accuracy of the subspaces that were trained on sentential negation, applied without training to the other negation forms. Some sets do not have the roles of a site (n/a).}
-\label{fig:forms}
-\end{figure*}
-
-In Figure~\ref{fig:forms} we apply the subspaces from the base task to the
-other forms without training. The letter subspaces transfer to all forms at the
-last position (0.90 to 1.00) and to all forms except focus at the options
-(0.80 to 0.99). The $W$ subspace transfers to habitual negation and to
-``never'' (0.63 to 0.95). For ``no longer'' it transfers in Hindi (0.90) and
-fails in French (0.03), and it fails for lexical negation in both languages. This
-agrees with the patching result: the model has one late mechanism for all
-forms and several ways to hold the attachment in the context. In the Hindi
-``no longer'' items the cue is still \hi{नहीं}, with the time adverb \hi{अब} at
-the start of the sentence, and in French the cue changes from \emph{pas} to
-\emph{plus}, which may explain the difference between the two languages.
-
-\subsection{A polarity for each fact}
-\label{sec:worlds}
-
-In the explicit worlds a single variable $W$ is not defined, and the causal
-model has one polarity for each fact. Patching on two persons and two
-predicates (64 items) shows the selectivity directly: a change of the queried
-fact in the donor changes the answer, and a change of any other fact, of the
-same person or of the other person, has an effect below 0.04 at every layer
-and position in both languages. For DAS we learn one basis for all facts. The
-site is all tokens of a fact after the name, and the intervention gives fact
-$i$ of the base item the polarity of fact $j$ of the source item. We measure
-the accuracy on questions about fact $i$ (target) and the rate at which
-answers about the other facts stay correct.
+The first-seed within-language grid (Table~\ref{tab:allvars}) compares all three candidate variables at each principal site. Only the principal candidate at each site is summarized across seeds in Table~\ref{tab:das}; the other grid cells are single-seed results. Cross-variable effects, especially at the option site, are one reason not to treat the candidate variables as uniquely localized.
 
 \begin{table}[t]
-\small
+\small\centering
 \begin{tabularx}{\linewidth}{@{}Xccc@{}}
 \toprule
- & \multicolumn{2}{c}{Target} & Other \\
-Data & $i = j$ & $i \neq j$ & facts \\
+Site & $W$ & $Z$ & \textbf{ANS} \\
 \midrule
-Hindi, two predicates, L13 & 0.82 & 0.79 & 0.99 \\
-Hindi, one predicate, L15 & 0.91 & 0.87 & 1.00 \\
-French, one predicate, L15 & 0.74 & 0.85 & 0.99 \\
-French, two predicates, L15 & 0.62 & 0.60 & 0.97 \\
+Clauses L14 & .92 / .81 & .17 / .03 & .33 / .09 \\
+Options L18 & .07 / .25 & .75 / .90 & .23 / .66 \\
+Options L19 & .12 / .34 & .60 / .56 & .93 / .97 \\
+Final L27 & .01 / .10 & .38 / .45 & 1.00 / 1.00 \\
 \bottomrule
 \end{tabularx}
-\caption{DAS on the explicit worlds with one 8-dimensional basis for all facts. The rows with two predicates are the mean of two seeds.}
-\label{tab:worlds}
+\caption{First-seed within-language interchange accuracy for each candidate variable and site, Hindi / French. Three-seed means for the principal candidate at each site appear in Table~\ref{tab:das}.}
+\label{tab:allvars}
 \end{table}
 
-The subspace changes the answer about the target fact and leaves the other
-facts correct, at 0.96 or more in every run (Table~\ref{tab:worlds}). The
-scores for $i \neq j$ are close to those for $i = j$, so the code does not
-depend on the position of the fact or on the person. This excludes a global
-polarity variable, which would change the answers about the other facts. The
-selectivity is stable, and the strength of the control is not: for Hindi with
-two predicates the two seeds give 0.99 and 0.65 on the target, and French is
-between 0.62 and 0.85.
+With a French-trained clause basis, a French base and Hindi source yield 0.83 mean accuracy (range 0.79--0.91), close to the French within-language mean of 0.82. With a Hindi-trained basis, a Hindi base and French source yield 0.38 (0.34--0.43), below its Hindi within-language mean of 0.88. The jointly trained eight-dimensional basis scores 0.77 / 0.72 on Hindi and 0.54 / 0.72 on French across its two seeds. These results allow a shared-direction interpretation but do not demonstrate identical distributions of the full hidden states.
 
-For nested negation (``it is not true that X does not like tea'') we compared
-two causal models at the fact tokens: one stores the polarity of the inner
-clause, the other the composed polarity. On the items where the two models
-give different labels, the inner polarity fits better in Hindi at layers 11
-and 13 (0.63 to 0.99 against 0.27 to 0.45, two seeds), and the composed
-polarity fits better in French at layer 13 (0.89 and 0.91 against 0.64 and
-0.72). In Hindi the fact tokens at these layers therefore hold the polarity
-of their own clause, and the outer negation is applied later or at other
-tokens.
+For affirmative controls, the $W$ and $Z$ interventions at their principal sites preserve the base answer at 0.99--1.00. The answer-letter intervention changes it on about half of these controls, consistent with a letter-level rather than negation-specific intervention. Random bases of the same size score 0.00 on the selected different-variable pairs.
 
-\section{Activation oracle}
-\label{sec:e4}
-
-The oracle of \citet{karvonen2026oracles} for Qwen3-4B is an adapter on the
-same model. It receives activations from layer 9, 18 or 27 at placeholder
-tokens and answers a question in English. We asked it yes/no questions about
-300 test items for each language and compared it with two baselines on the same
-activations: the same injection with the adapter off, and a linear probe.
+\section{Fact-level and nested-polarity interventions}
+\label{app:worlds}
+For two people and two predicates, Table~\ref{tab:worldseeds} reports accuracy when the intervention should change the queried fact and when it should leave a different fact unchanged. The same learned basis is applied to every fact slot; ``same'' and ``different'' identify the relation between the recipient and donor fact indices. High other-fact accuracy is an observed selectivity measure, conditional on this intervention and these questions.
 
 \begin{table}[t]
-\small
+\small\centering
+\begin{tabularx}{\linewidth}{@{}Xccc@{}}
+\toprule
+Language, layer, seed & Same & Different & Other \\
+\midrule
+Hindi L13, seed 0 & .99 & .97 & .99 \\
+Hindi L13, seed 1 & .65 & .61 & .98--.99 \\
+French L15, seed 0 & .62 & .54 & .97--.98 \\
+French L15, seed 1 & .62 & .65 & .96 \\
+\bottomrule
+\end{tabularx}
+\caption{Two-predicate world interventions. Same / different are target interchange accuracies for matching / differing fact slots. Other is the range of accuracies for questions about unmodified facts across these slot conditions.}
+\label{tab:worldseeds}
+\end{table}
+
+For nested items we score only cases where the inner and composed models predict different answers. At Hindi layer 11, inner-polarity accuracy is 0.99 / 0.77 across seeds versus 0.45 / 0.32 for composed polarity. At French layer 13, inner accuracy is 0.64 / 0.72 versus 0.91 / 0.89 for composed polarity. These are separate learned intervention models, not direct measurements of a single scalar code.
+
+\section{Exception wording and question targets}
+\label{app:exceptions}
+Table~\ref{tab:fullexceptions} gives both quantifier conditions. Each wording uses 500 examples: 252 questions about X and 248 about a different person. The original dataset evaluation reports 12.9\% accuracy for non-exception questions, while the wording-analysis rerun reports 13.7\% (rounded to 14\%) on the same 248 base-condition items. The saved runs do not establish the reason for this small discrepancy; we retain the values reported by each run.
+
+\begin{table}[t]
+\small\centering
 \begin{tabularx}{\linewidth}{@{}Xcc@{}}
 \toprule
-Question and states & Oracle & No adapter \\
+Wording & Nobody & Everyone \\
+ & X / other & X / other \\
 \midrule
-Does this person like it? Clause 1, L18 & .99 / 1.00 & .57 / .64 \\
-Does \emph{name 2} like it? Context, L18 & 1.00 / 1.00 & .50 / .50 \\
-Does this person like it? Option A, L18 & .66 / .57 & .42 / .43 \\
-Is the negation about the first person? Context, L18 & .50 / .50 & .50 / .50 \\
-Is the correct answer option A? Last position, L27 & .95 / .96 & .55 / .54 \\
+Hindi \hi{को छोड़कर}, before & 95 / 14 & 100 / 98 \\
+Hindi \hi{के अलावा}, before & 89 / 67 & 89 / 97 \\
+Hindi \hi{के सिवा}, before & 98 / 57 & 3 / 96 \\
+Hindi \hi{को छोड़कर}, after & 79 / 57 & 84 / 94 \\
+Hindi \hi{के सिवा}, after & 100 / 100 & 13 / 88 \\
+Hindi ``only X'' & 100 / 100 & -- \\
+Hindi two sentences & 100 / 100 & -- \\
+French \emph{sauf X}, after & 98 / 100 & 100 / 100 \\
+French \emph{sauf X}, before & 46 / 100 & 100 / 100 \\
 \bottomrule
 \end{tabularx}
-\caption{Accuracy of the oracle readout (Hindi / French). A linear probe on the same activations gets 1.00 in every row.}
-\label{tab:oracle}
+\caption{Accuracy (\%) by quantifier, wording and target of the question. Before / after denotes the exception phrase's position relative to the quantified clause. ``Nobody'' and ``Everyone'' mean the respective quantifier with an exception. Values are rounded.}
+\label{tab:fullexceptions}
 \end{table}
 
-The oracle reads the polarity of a person from the clause tokens and from the
-full context, and it reads the planned answer at the last position
-(Table~\ref{tab:oracle}). It reads the option name poorly (0.66 and 0.57),
-although the lookup result is there at layer 18 and a linear probe finds it.
-It also fails on the abstract question about the first or second mention. The
-oracle therefore reads content that has a natural description (``this person
-does not like tea'', ``the answer is A''), and it misses an intermediate
-variable that our patching and DAS results place at the options.
-
-We then tested if the oracle follows an intervention. We patched the model as
-in Section~\ref{sec:e2} and asked the oracle about the last position at layer
-27 after the patch. A patch of both clauses at layer 13 changes the answer of
-the model in 100\% of the Hindi pairs and 73\% of the French pairs, and the
-oracle agrees with the new answer of the model in 0.94 and 0.93 of the pairs.
-A patch of one clause changes the answer of the model in at most 10\% of the pairs and
-the oracle stays with the model (0.91 to 0.97). After a patch of the option
-tokens at layer 19 the agreement is 0.76 in Hindi and 0.92 in French. The
-oracle therefore reports the state of the model after the intervention and
-does not repeat what the text says.
-
-\section{Quantifiers and exceptions}
-\label{sec:quant}
-
-In the quantifier set we patched between two sentences with the same persons,
-object and question: the recipient says ``everyone likes it'' and the donor
-``nobody likes it'', so the answer changes for every person (24 pairs for
-each condition and language). The route is that of the explicit worlds. The
-quantifier word holds the difference in the first layers (0.99 in French at
-layers 2 to 6), the later tokens of the sentence hold it up to layers 14 to
-16, the question tokens hold a part at layer 16 (0.47 and 0.44), the options
-recover 0.95 and 0.94 at layer 20, and the last position follows from layer
-26. With an exception in both sentences (``everyone except Z'' against
-``nobody except Z''), the two languages differ in the middle of the route. In
-French the marker \emph{sauf} follows the quantifier, and its token recovers
-0.85 to 0.94 at layers 12 to 14, so the quantifier and the exception are
-combined at this token. In our Hindi templates the exception phrase precedes
-the quantifier. Its tokens cannot read the quantifier, their patch recovers
-0.00 at every layer, and the effect is on the tokens after them (0.66 to 0.86
-for the sentence as a whole, when the question is about the exception).
-
-The Hindi failure is below our threshold for patching, so we analysed it in
-behaviour. We kept the items and changed only the context sentence
-(Table~\ref{tab:except}). With the original wording the model answers the
-question about the exception correctly and says ``yes'' for the other two
-persons in 86\% of the items, so it reads the sentence as if all three
-persons like the object. Other postpositions for ``except'' give 57\% and
-67\%. When the same content is stated with \hi{केवल} (``only Sita likes
-curd'') or as two sentences (``Nobody likes curd. But Sita likes curd.''),
-the model is correct on every item. The model therefore holds the correct
-facts when they are stated directly, and the error is in the combination of
-the exception phrase with the negative quantifier.
-
-The patching result suggests the order of the two as a cause, and we tested
-both orders in both languages. For the negative quantifier the order matters
-in both. In Hindi, when the exception follows the sentence, the accuracy on
-the other persons rises from 57\% to 100\% with \hi{के सिवा} and from 14\% to
-57\% with \hi{को छोड़कर}. In French, when the exception comes first
-(\emph{Sauf X, personne n'aime le yaourt}), the accuracy on the question about
-X falls from 98\% to 46\%. The order does not explain all errors: ``everyone
-except X'' with \hi{के सिवा} fails on the question about X in both orders (3\%
-and 13\%), and the model answers ``yes'' for all persons.
+\section{Oracle behavior after interventions}
+\label{app:oracle}
+Table~\ref{tab:oraclepatch} separates the model answer-change rate from oracle--model agreement. The oracle reads the final-position layer-27 state after each intervention, so unchanged answers contribute to agreement as well as changed answers. These aggregates therefore do not separately measure oracle accuracy on only the changed subset.
 
 \begin{table}[t]
-\small
-\begin{tabularx}{\linewidth}{@{}Xrr@{}}
+\small\centering
+\begin{tabularx}{\linewidth}{@{}Xcc@{}}
 \toprule
-Context sentence & X & Other \\
+Patch & Answer changed & Agreement \\
 \midrule
-X \hi{को छोड़कर किसी को ... नहीं है} & 95 & 14 \\
-X \hi{के अलावा किसी को ... नहीं है} & 89 & 67 \\
-X \hi{के सिवा किसी को ... नहीं है} & 98 & 57 \\
-\hi{किसी को ... नहीं है,} X \hi{को छोड़कर} & 79 & 57 \\
-\hi{किसी को ... नहीं है,} X \hi{के सिवा} & 100 & 100 \\
-\hi{केवल} X \hi{को ... है} & 100 & 100 \\
-\hi{किसी को ... नहीं है। लेकिन} X \hi{को ... है।} & 100 & 100 \\
-\emph{Personne n'aime ..., sauf} X & 98 & 100 \\
-\emph{Sauf} X\emph{, personne n'aime ...} & 46 & 100 \\
-\midrule
-X \hi{को छोड़कर सबको ... है} & 100 & 98 \\
-X \hi{के अलावा सबको ... है} & 89 & 97 \\
-X \hi{के सिवा सबको ... है} & 3 & 96 \\
-\hi{सबको ... है,} X \hi{को छोड़कर} & 84 & 94 \\
-\hi{सबको ... है,} X \hi{के सिवा} & 13 & 88 \\
-\emph{Tout le monde aime ..., sauf} X & 100 & 100 \\
-\emph{Sauf} X\emph{, tout le monde aime ...} & 100 & 100 \\
+None & .00 / .00 & .94 / .95 \\
+Both clauses, L13 & 1.00 / .73 & .94 / .93 \\
+Clause 1, L13 & .01 / .04 & .92 / .97 \\
+Clause 2, L13 & .10 / .07 & .91 / .95 \\
+Options, L19 & .98 / .95 & .76 / .92 \\
 \bottomrule
 \end{tabularx}
-\caption{Accuracy in percent for wordings of ``nobody except X'' (upper part) and ``everyone except X'' (lower part), when the question is about X or about another person (500 items for each wording).}
-\label{tab:except}
+\caption{Model answer-change rate and oracle agreement with the patched model on 96 pairs, Hindi / French. Agreement is over all pairs.}
+\label{tab:oraclepatch}
 \end{table}
-
-\section{Discussion}
-
-The model solves the task with a lookup at the options (H1). The context
-holds, for each clause, the polarity of its fact. Each option name finds the clause of
-its person, takes the polarity, and after the question polarity is applied
-the option tokens hold the answer letter, which the last position copies. Seven of
-the eight heads that carry the lookup are the same in Hindi and French, although the two
-languages put the cue in different places and mark it with a different number
-of tokens. We found no evidence for a pointer in the context that the last
-position reads (H2), and none for late heads that prefer the affirmative
-person (H3); the model is correct on every base item, so it has no error of
-this kind to explain.
-
-The parts of the mechanism differ in how general they are. The late part,
-from the options to the answer, is shared between the languages and between all
-the negation forms that we tested, in patching and in DAS. The early part, the
-code in the context, is abstract over names and objects but differs between
-languages and between forms. With sentential negation in one language only,
-the two parts look like one mechanism.
-
-The study has limits. The full analysis uses one model. The DAS scores on the
-main sites have three seeds, and the other DAS scores have one or two.
-Recovery is not additive, since one head, one layer or one clause alone does
-little, and we therefore describe sets of heads and cannot give a role to each
-head. The head ranking used 32 pairs. We have not separated the code on the
-clause tokens from the code on the cue tokens, which matters most for French.
-A fluent reader has not yet checked
-all templates of the further sets, and the exception results show that a
-result can depend on one wording.
-
-\bibliography{refs}
 
 \end{document}
