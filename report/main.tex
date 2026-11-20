@@ -42,7 +42,9 @@ answer letter. The answer subspace transfers between the languages and to
 other negation forms, and the context subspace transfers poorly. A released
 activation oracle reads the attachment from the context and the planned answer
 from the last position, but it reads the mark on the options poorly. One
-Hindi construction, ``nobody except X'', fails in behaviour.
+Hindi construction, ``nobody except X'', fails in behaviour. The failure
+depends on the wording of the exception and on its position before the
+quantifier, and French fails in part when it has the same order.
 \end{abstract}
 
 \section{Introduction}
@@ -200,7 +202,8 @@ Table~\ref{tab:e1} gives the accuracy on all sets. The model is at or near
 100\% on every negation form. It is weaker on nested negation in French and on
 person focus in Hindi. One condition fails: for the Hindi sentence
 \hi{सीता को छोड़कर किसी को दही पसंद नहीं है} (``nobody except Sita likes curd''),
-the model says that the other two persons like curd.
+the model says that the other two persons like curd. We return to this
+condition in Section~\ref{sec:quant}.
 
 \section{The route of the attachment}
 \label{sec:e2}
@@ -312,23 +315,59 @@ Layers & 16-19 & 19-24 & 23-26 \\
 \multicolumn{4}{@{}l}{\emph{Patch from the partner (recovery)}} \\
 Top 8, discovery & .90 / .88 & .53 / .57 & .83 / .82 \\
 All other heads & .03 / .05 & .02 / .03 & $-$.07 / $-$.05 \\
+Top 8, test & .89 / .79 & .49 / .58 & .85 / .85 \\
+8 random heads & .00 / .00 & .00 / .00 & $-$.01 / $-$.01 \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Resample ablation (accuracy, other negated mention)}} \\
+Top 8 & .00 / .13 & .60 / .57 & .00 / .00 \\
+8 random heads & 1.00 / 1.00 & 1.00 / 1.00 & 1.00 / 1.00 \\
 \bottomrule
 \end{tabularx}
-\caption{Sets of heads for the three steps (Hindi / French), patch from the partner (recovery).}
+\caption{Sets of heads for the three steps (Hindi / French). The random sets are five draws of eight heads from the same layers; we give the mean.}
 \label{tab:heads}
 \end{table}
 
 The top sets are nearly the same in the two languages. Seven of the eight
 heads for the options are shared (L16H17, L17H4, L18H8, L18H11, L18H15,
 L19H10, L19H31), seven of the eight for ``B:'', and six of the eight for the
-last position (among them L24H28 to L24H31). We have not yet tested the sets on the test split, which has other
-names and objects than the split on which we ranked the heads.
+last position (among them L24H28 to L24H31). We repeated the test on the test split, which has other
+names and objects than the split on which we ranked the heads. The top eight heads keep
+their effect, and eight random heads of the same layers recover 0.00
+(Table~\ref{tab:heads}). For necessity we used a resample ablation: the
+outputs of the heads at the destination tokens come from a random item with
+the same family, question polarity and option order, and with other names and
+another object. When the random item has the same negated mention as the
+recipient, the logit difference does not change. When it has the other
+negated mention, the answer of the model follows the random item: for the
+heads of the option step the accuracy falls from 1.00 to 0.00 in Hindi and
+0.13 in French, and for the heads of the last step to 0.00 in both. The same
+ablation of eight random heads changes nothing. The model therefore has no
+second path that corrects the attachment when these heads carry the wrong
+value.
 
 The attention patterns agree with a lookup. From an option name, head L13H13
 gives 0.98 of its attention on the context to the clause of the same person
 and 0.01 to the other clause in Hindi (0.89 and 0.04 in French). L11H10 and
 L19H24 attend to the name in that clause, and L13H13, L13H14, L15H13 and
 L18H15 attend to the predicate.
+
+\subsection{Shortcut heads}
+
+H3 predicts late heads that push the affirmative person. The removal of such
+a head helps on negative questions and hurts on affirmative questions. We
+replaced the output of each of the 512 heads in layers 20 to 35 at the last
+position with its mean over the items, one head at a time, and measured the
+change of the logit difference toward the correct letter for each question
+polarity. No head has the predicted pattern. The effects on the two
+polarities are nearly equal: their correlation over the heads is 0.99 in both
+languages, and the largest difference between the polarities is 0.6, on a
+logit difference of 26 to 28. Some heads do work against the correct answer.
+Without L34H29 the logit difference rises by 2.6 in Hindi and 2.0 in French,
+and without the eight strongest heads of this kind (ranked on one half of the
+items, removed on the other half) it rises by 8.7 and 7.2. They are the same heads in the two languages
+(L34H29, L35H24, L35H27, L25H14, L25H30), and they oppose the correct letter
+on affirmative and negative questions alike. They lower the confidence of the
+model and hold no preference for the affirmative person.
 
 \subsection{Other forms and a smaller model}
 
@@ -372,13 +411,13 @@ scores 0.
 \toprule
 Site & $W$ & $Z$ & \textsc{ans} \\
 \midrule
-Clause tokens, L14 & \textbf{.92 / .82} & .17 / .03 & .33 / .09 \\
-Option names, L18 & .07 / .25 & \textbf{.75 / .90} & .23 / .66 \\
-Option names, L19 & .12 / .34 & .60 / .56 & \textbf{.93 / .97} \\
+Clause tokens, L14 & \textbf{.88 / .82} & .17 / .03 & .33 / .09 \\
+Option names, L18 & .07 / .25 & \textbf{.65 / .83} & .23 / .66 \\
+Option names, L19 & .12 / .34 & .60 / .56 & \textbf{.93 / .98} \\
 Last position, L27 & .01 / .10 & .38 / .45 & \textbf{1.00 / 1.00} \\
 \bottomrule
 \end{tabularx}
-\caption{Interchange accuracy of 8-dimensional subspaces, trained and tested in the same language (Hindi / French). The clause tokens are the body and the end of each clause, without the names and the cue. A random subspace of the same size scores 0.00 in every cell.}
+\caption{Interchange accuracy of 8-dimensional subspaces, trained and tested in the same language (Hindi / French). The clause tokens are the body and the end of each clause, without the names and the cue. Cells in bold are the mean of three seeds, the other cells have one seed. A random subspace of the same size scores 0.00 in every cell.}
 \label{tab:das}
 \end{table}
 
@@ -390,8 +429,9 @@ options by layer 17, is applied. Affirmative controls keep their answer under
 the $W$ and $Z$ interventions at the sites in bold (0.99 to 1.00). The letter
 needs one dimension: a 1-dimensional subspace scores 1.00 at the last
 position and 0.81 and 0.96 at the options. $W$ in the context needs more: 0.59
-and 0.23 with one dimension, 0.72 and 0.74 with four. The bold scores are from
-one seed.
+and 0.23 with one dimension, 0.72 and 0.74 with four. Over the three seeds the scores in bold
+stay within 0.06 of the mean, except $Z$ at the options (0.55 to 0.75 in
+Hindi, 0.71 to 0.90 in French).
 
 \subsection{Transfer between the languages}
 
@@ -401,26 +441,26 @@ one seed.
 \toprule
 Subspace & Hi to Fr & Fr to Hi \\
 \midrule
-$W$, clause tokens, L14 & 0.10 & 0.49 \\
-$Z$, option names, L18 & 0.61 & 0.40 \\
-\textsc{ans}, option names, L19 & 0.99 & 0.45 \\
+$W$, clause tokens, L14 & 0.09 & 0.53 \\
+$Z$, option names, L18 & 0.52 & 0.38 \\
+\textsc{ans}, option names, L19 & 0.96 & 0.57 \\
 \textsc{ans}, last position, L27 & 1.00 & 0.99 \\
 \bottomrule
 \end{tabularx}
-\caption{Interchange accuracy when the subspace is trained on one language and tested on the other.}
+\caption{Interchange accuracy when the subspace is trained on one language and tested on the other (mean of three seeds).}
 \label{tab:transfer}
 \end{table}
 
 We applied each subspace to the other language without training
 (Table~\ref{tab:transfer}). The letter subspace at the last position transfers
 fully in both directions. The $W$ subspace in the context does not: the
-Hindi subspace scores 0.10 on French, and the French subspace 0.49 on Hindi.
+Hindi subspace scores 0.09 on French, and the French subspace 0.53 on Hindi.
 Pairs with one item of each language give more detail. With the French
-subspace, a Hindi source changes the answer of a French base in 0.91 of the
+subspace, a Hindi source changes the answer of a French base in 0.83 of the
 pairs, as often as a French source does (0.82), so the Hindi clause tokens
 hold the attachment in the directions that French uses. The same subspace
 controls a Hindi base in only half of the pairs. With the Hindi subspace, a
-French source changes a Hindi base in 0.37 of the pairs. The simplest reading is that the Hindi context holds the
+French source changes a Hindi base in 0.38 of the pairs. The simplest reading is that the Hindi context holds the
 attachment in the shared directions and in further directions that the
 French subspace does not cover, and that training on Hindi finds mostly
 the latter. The shared part of the mechanism is partial in the context,
@@ -468,28 +508,32 @@ answers about the other facts stay correct.
  & \multicolumn{2}{c}{Target} & Other \\
 Data & $i = j$ & $i \neq j$ & facts \\
 \midrule
-Hindi, two predicates, L13 & 0.99 & 0.97 & 0.99 \\
+Hindi, two predicates, L13 & 0.82 & 0.79 & 0.99 \\
 Hindi, one predicate, L15 & 0.91 & 0.87 & 1.00 \\
 French, one predicate, L15 & 0.74 & 0.85 & 0.99 \\
-French, two predicates, L15 & 0.62 & 0.54 & 0.97 \\
+French, two predicates, L15 & 0.62 & 0.60 & 0.97 \\
 \bottomrule
 \end{tabularx}
-\caption{DAS on the explicit worlds with one 8-dimensional basis for all facts.}
+\caption{DAS on the explicit worlds with one 8-dimensional basis for all facts. The rows with two predicates are the mean of two seeds.}
 \label{tab:worlds}
 \end{table}
 
 The subspace changes the answer about the target fact and leaves the other
-facts correct, at 0.96 or more in every row (Table~\ref{tab:worlds}). The
+facts correct, at 0.96 or more in every run (Table~\ref{tab:worlds}). The
 scores for $i \neq j$ are close to those for $i = j$, so the code does not
 depend on the position of the fact or on the person. This excludes a global
-polarity variable, which would change the answers about the other facts.
+polarity variable, which would change the answers about the other facts. The
+selectivity is stable, and the strength of the control is not: for Hindi with
+two predicates the two seeds give 0.99 and 0.65 on the target, and French is
+between 0.62 and 0.85.
 
 For nested negation (``it is not true that X does not like tea'') we compared
 two causal models at the fact tokens: one stores the polarity of the inner
 clause, the other the composed polarity. On the items where the two models
 give different labels, the inner polarity fits better in Hindi at layers 11
-and 13 (0.63 to 0.99 against 0.45), and the composed
-polarity fits better in French at layer 13 (0.91 against 0.64). In Hindi the fact tokens at these layers therefore hold the polarity
+and 13 (0.63 to 0.99 against 0.27 to 0.45, two seeds), and the composed
+polarity fits better in French at layer 13 (0.89 and 0.91 against 0.64 and
+0.72). In Hindi the fact tokens at these layers therefore hold the polarity
 of their own clause, and the outer negation is applied later or at other
 tokens.
 
@@ -539,6 +583,77 @@ tokens at layer 19 the agreement is 0.76 in Hindi and 0.92 in French. The
 oracle therefore reports the state of the model after the intervention and
 does not repeat what the text says.
 
+\section{Quantifiers and the Hindi exception}
+\label{sec:quant}
+
+In the quantifier set we patched between two sentences with the same persons,
+object and question: the recipient says ``everyone likes it'' and the donor
+``nobody likes it'', so the answer changes for every person (24 pairs for
+each condition and language). The route is that of the explicit worlds. The
+quantifier word holds the difference in the first layers (0.99 in French at
+layers 2 to 6), the later tokens of the sentence hold it up to layers 14 to
+16, the question tokens hold a part at layer 16 (0.47 and 0.44), the options
+recover 0.95 and 0.94 at layer 20, and the last position follows from layer
+26. With an exception in both sentences (``everyone except Z'' against
+``nobody except Z''), the two languages differ in the middle of the route. In
+French the marker \emph{sauf} follows the quantifier, and its token recovers
+0.85 to 0.94 at layers 12 to 14, so the quantifier and the exception are
+combined at this token. In our Hindi templates the exception phrase precedes
+the quantifier. Its tokens cannot read the quantifier, their patch recovers
+0.00 at every layer, and the effect is on the tokens after them (0.66 to 0.86
+for the sentence as a whole, when the question is about the exception).
+
+The Hindi failure is below our threshold for patching, so we analysed it in
+behaviour. We kept the items and changed only the context sentence
+(Table~\ref{tab:except}). With the original wording the model answers the
+question about the exception correctly and says ``yes'' for the other two
+persons in 86\% of the items, so it reads the sentence as if all three
+persons like the object. Other postpositions for ``except'' give 57\% and
+67\%. When the same content is stated with \hi{केवल} (``only Sita likes
+curd'') or as two sentences (``Nobody likes curd. But Sita likes curd.''),
+the model is correct on every item. The model therefore holds the correct
+facts when they are stated directly, and the error is in the combination of
+the exception phrase with the negative quantifier.
+
+The patching result suggests the order of the two as a cause, and we tested
+both orders in both languages. For the negative quantifier the order matters
+in both. In Hindi, when the exception follows the sentence, the accuracy on
+the other persons rises from 57\% to 100\% with \hi{के सिवा} and from 14\% to
+57\% with \hi{को छोड़कर}. In French, when the exception comes first
+(\emph{Sauf X, personne n'aime le yaourt}), the accuracy on the question about
+X falls from 98\% to 46\%. The order does not explain all errors: ``everyone
+except X'' with \hi{के सिवा} fails on the question about X in both orders (3\%
+and 13\%), and the model answers ``yes'' for all persons.
+
+\begin{table}[t]
+\small
+\begin{tabularx}{\linewidth}{@{}Xrr@{}}
+\toprule
+Context sentence & X & Other \\
+\midrule
+X \hi{को छोड़कर किसी को ... नहीं है} & 95 & 14 \\
+X \hi{के अलावा किसी को ... नहीं है} & 89 & 67 \\
+X \hi{के सिवा किसी को ... नहीं है} & 98 & 57 \\
+\hi{किसी को ... नहीं है,} X \hi{को छोड़कर} & 79 & 57 \\
+\hi{किसी को ... नहीं है,} X \hi{के सिवा} & 100 & 100 \\
+\hi{केवल} X \hi{को ... है} & 100 & 100 \\
+\hi{किसी को ... नहीं है। लेकिन} X \hi{को ... है।} & 100 & 100 \\
+\emph{Personne n'aime ..., sauf} X & 98 & 100 \\
+\emph{Sauf} X\emph{, personne n'aime ...} & 46 & 100 \\
+\midrule
+X \hi{को छोड़कर सबको ... है} & 100 & 98 \\
+X \hi{के अलावा सबको ... है} & 89 & 97 \\
+X \hi{के सिवा सबको ... है} & 3 & 96 \\
+\hi{सबको ... है,} X \hi{को छोड़कर} & 84 & 94 \\
+\hi{सबको ... है,} X \hi{के सिवा} & 13 & 88 \\
+\emph{Tout le monde aime ..., sauf} X & 100 & 100 \\
+\emph{Sauf} X\emph{, tout le monde aime ...} & 100 & 100 \\
+\bottomrule
+\end{tabularx}
+\caption{Accuracy in percent for wordings of ``nobody except X'' (upper part) and ``everyone except X'' (lower part), when the question is about X or about another person (500 items for each wording).}
+\label{tab:except}
+\end{table}
+
 \section{Discussion}
 
 The model solves the task with a lookup at the options (H1). The context
@@ -548,8 +663,9 @@ the option tokens hold the answer letter, which the last position copies. Seven 
 the eight heads that carry the lookup are the same in Hindi and French, although the two
 languages put the cue in different places and mark it with a different number
 of tokens. We found no evidence for a pointer in the context that the last
-position reads (H2); the test of H3, on late heads that prefer the affirmative
-person, is still open.
+position reads (H2), and none for late heads that prefer the affirmative
+person (H3); the model is correct on every base item, so it has no error of
+this kind to explain.
 
 The parts of the mechanism differ in how general they are. The late part,
 from the options to the answer, is shared between the languages and between all
@@ -558,13 +674,15 @@ code in the context, is abstract over names and objects but differs between
 languages and between forms. With sentential negation in one language only,
 the two parts look like one mechanism.
 
-The study has limits. The full analysis uses one model. Each DAS score has one seed.
+The study has limits. The full analysis uses one model. The DAS scores on the
+main sites have three seeds, and the other DAS scores have one or two.
 Recovery is not additive, since one head, one layer or one clause alone does
 little, and we therefore describe sets of heads and cannot give a role to each
 head. The head ranking used 32 pairs. Our reading of the context code, with
 shared directions and further Hindi directions, is an inference from transfer
 scores, and we did not test it directly. A fluent reader has not yet checked
-all templates of the further sets.
+all templates of the further sets, and the exception results show that a
+result can depend on one wording.
 
 \bibliography{refs}
 
