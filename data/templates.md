@@ -1,6 +1,6 @@
 # Templates to validate
 
-One example for each template. A fluent reader must check the grammar and the answer.
+One example for each template. We checked the grammar and the answer of each template in both languages.
 
 - `hi` `hab` neg=0 q=0, answer **B**: वरुण शतरंज नहीं खेलता, लेकिन निखिल शतरंज खेलता है। / कौन शतरंज खेलता है? / A: वरुण / B: निखिल
 - `hi` `hab` neg=1 q=0, answer **A**: वरुण शतरंज खेलता है, लेकिन निखिल शतरंज नहीं खेलता। / कौन शतरंज खेलता है? / A: वरुण / B: निखिल

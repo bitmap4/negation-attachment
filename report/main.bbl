@@ -1,4 +1,4 @@
-\begin{thebibliography}{16}
+\begin{thebibliography}{17}
 \providecommand{\natexlab}[1]{#1}
 
 \bibitem[{Dumas et~al.(2025)Dumas, Wendler, Veselovsky, Monea, and
@@ -21,6 +21,15 @@ Jiahai Feng and Jacob Steinhardt. 2024.
 Atticus Geiger, Hanson Lu, Thomas Icard, and Christopher Potts. 2021.
 \newblock Causal abstractions of neural networks.
 \newblock In \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[{Geiger et~al.(2024)Geiger, Wu, Potts, Icard, and
+  Goodman}]{geiger2024das}
+Atticus Geiger, Zhengxuan Wu, Christopher Potts, Thomas Icard, and Noah~D.
+  Goodman. 2024.
+\newblock Finding alignments between interpretable causal variables and
+  distributed neural representations.
+\newblock In \emph{Proceedings of the Third Conference on Causal Learning and
+  Reasoning}.
 
 \bibitem[{Ghandeharioun et~al.(2024)Ghandeharioun, Caciularu, Pearce, Dixon,
   and Geva}]{ghandeharioun2024patchscopes}

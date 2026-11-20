@@ -224,7 +224,7 @@ In the failing cases the model answers "yes" for all persons.
 - One model for the full analysis. Three seeds for the DAS runs on the main sites, one or two for the others.
 - Recovery is not additive: one head, one layer or one clause alone does little.
 - The head ranking used 32 + 32 pairs.
-- The new Hindi and French templates are not yet checked by a fluent reader (`data/templates.md`).
+- We checked the Hindi and French templates ourselves (`data/templates.md`). Some exception word orders can differ in naturalness.
 
 ## Figures (`fig/`)
 

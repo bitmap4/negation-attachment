@@ -12,6 +12,7 @@ fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.75), sharey=True, layout="constra
 series = [("c12", "Both clauses", "#0072B2", "-"),
           ("ctx", "Context + cue", "#009E73", "--"),
           ("opt", "Options", "#D55E00", "-"),
+          ("lB", "Label", "#E69F00", ":"),
           ("end", "Final position", "#CC79A7", "-")]
 for ax, (lang, title) in zip(axes, [("hi", "Hindi"), ("fr", "French")]):
     with np.load(root / "results" / "e2_4b" / f"resid_neg_{lang}.npz", allow_pickle=True) as data:
@@ -30,5 +31,5 @@ for ax, (lang, title) in zip(axes, [("hi", "Hindi"), ("fr", "French")]):
     ax.spines[["top", "right"]].set_visible(False)
 axes[0].set_ylabel("Logit-difference recovery", fontsize=9)
 axes[0].set_ylim(-.25, 1.25)
-axes[1].legend(fontsize=7.6, loc="upper left", frameon=False, ncol=1)
+axes[1].legend(fontsize=7.6, loc="center right", frameon=False, ncol=1)
 fig.savefig(root / "report" / "fig" / "e2_route.pdf", bbox_inches="tight")
